@@ -12,12 +12,12 @@ project "Anthem-Build-Manager"
       "src",
 
 	  -- Include Core
-	  "../Library/src"
+	  "../Anthem/src"
    }
 
    links
    {
-      "Library"
+      "Anthem"
    }
 
    targetdir ("../bin/" .. OutputDir .. "/%{prj.name}")
