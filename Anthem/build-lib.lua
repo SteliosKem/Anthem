@@ -1,5 +1,5 @@
-project "Application"
-   kind "ConsoleApp"
+project "Anthem"
+   kind "StaticLib"
    language "C++"
    cppdialect "C++20"
    targetdir "bin/%{cfg.buildcfg}"
@@ -9,15 +9,7 @@ project "Application"
 
    includedirs
    {
-      "src",
-
-	  -- Include Core
-	  "../Library/src"
-   }
-
-   links
-   {
-      "Library"
+      "src"
    }
 
    targetdir ("../bin/" .. OutputDir .. "/%{prj.name}")
@@ -25,7 +17,7 @@ project "Application"
 
    filter "system:windows"
        systemversion "latest"
-       defines { "WINDOWS" }
+       defines { }
 
    filter "configurations:Debug"
        defines { "DEBUG" }

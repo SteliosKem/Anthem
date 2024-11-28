@@ -1,8 +1,8 @@
 -- premake5.lua
-workspace "New Project"
+workspace "Anthem"
    architecture "x64"
    configurations { "Debug", "Release", "Dist" }
-   startproject "Application"
+   startproject "Anthem-Build-Manager"
 
    -- Workspace-wide build options for MSVC
    filter "system:windows"
@@ -10,8 +10,8 @@ workspace "New Project"
 
 OutputDir = "%{cfg.system}-%{cfg.architecture}/%{cfg.buildcfg}"
 
-group "Library"
-	include "Library/build-lib.lua"
+group "Anthem"
+	include "Anthem/build-lib.lua"
 group ""
 
-include "Application/build-app.lua"
+include "Anthem-Build-Manager/build-app.lua"
