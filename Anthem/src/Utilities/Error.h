@@ -2,19 +2,15 @@
 #include <string>
 #include <filesystem>
 #include <vector>
+#include "Utilities.h"
 
 namespace Anthem {
 	struct Error {
 		// Error Info
 		std::string message;
 
-		// The path of the file the error occured in
-		std::filesystem::path src_file_path;
-
-		// Token start and end index in source file
-		int src_start_index;
-		int src_end_index;
-		int src_line;
+		// Position info for the token that caused the error
+		Position token_position{};
 	};
 
 	// Manages a list of errors for uniform error handling throughout all phases of compilation
