@@ -5,9 +5,7 @@
 
 namespace Anthem {
 	enum TokenType {
-		// Single Character Tokens
-		// --
-
+		// -- Single Character Tokens --
 			// Grouped Tokens
 			LEFT_PARENTHESIS,
 			RIGHT_PARENTHESIS,
@@ -44,9 +42,7 @@ namespace Anthem {
 			EQUAL,
 		// --
 
-		// Double Character Tokens
-
-		// --
+		// -- Double Character Tokens --
 			// Comparison
 			BANG_EQUAL,
 			EQUAL_EQUAL,
@@ -62,9 +58,7 @@ namespace Anthem {
 			ARROW,
 		// --
 
-		// Keywords
-
-		// --
+		// -- Keywords --
 			AND,
 			OR,
 			TRUE,
@@ -89,19 +83,19 @@ namespace Anthem {
 			KEY_F32,
 			KEY_F64,
 			KEY_BOOL,
-		// --
 
-		// Types
-
-		// --
+		// -- Types --
 			TYPE_I8,
 			TYPE_I16,
 			TYPE_I32,
 			TYPE_I64,
 			TYPE_F32,
 			TYPE_F64,
-			TYPE_BOOL
+			TYPE_BOOL,
 		// --
+
+		// -- Special --
+			SPECIAL_EOF,
 	};
 
 	struct Token {
