@@ -1,4 +1,5 @@
 #pragma once
+#include <filesystem>
 #include <string>
 
 namespace Anthem {
@@ -21,4 +22,11 @@ namespace Anthem {
 
 	// Log to Console
 	void log(LogType type, const std::string& message);
+
+	// Check if character is a digit
+	bool is_digit(char character);
+	// Check if character is a letter or underscore
+	bool is_letter(char character);
+	// Check if character is a letter or underscore or digit
+	bool is_alphanumeric(char character);
 }

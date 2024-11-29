@@ -9,22 +9,30 @@ namespace Anthem {
 		Lexer(ErrorHandler* handler);
 		
 		// Analyze whole source code
-		const std::vector<Token>& analyze(const std::string& source);
+		const std::vector<Token>& analyze(const std::string& source, const std::filesystem::path& file_path = "");
 
 		const std::vector<Token>& get_tokens();
 	private:
+
+
 		// -- Utility --
 		
+
 		// Update to next character
 		void advance(uint32_t times = 1);
 
 		// Get a character current + <depth> index
 		char peek(uint32_t depth = 0);
 
+		// Return true and advance if next character matches the given one
+		bool match(char character);
+
 		// Returns the character of the source string at the current index
 		char current_character();
 
+
 		// -- Lexical Analysis --
+
 
 		// Skips over any whitespace characters
 		void handle_whitespace();
@@ -43,6 +51,9 @@ namespace Anthem {
 		char m_current_char = '\0';
 		uint32_t m_current_line = 0;
 
+		Position m_current_position;
+		
+		std::filesystem::path m_file_path{ "" };
 		std::string m_source_code{ "" };
 		std::vector<Token> m_tokens;
 		ErrorHandler* m_error_handler{ nullptr };

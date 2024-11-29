@@ -18,4 +18,17 @@ namespace Anthem {
 			break;
 		}
 	}
+
+	bool is_digit(char character) {
+		return character >= '0' && character <= '9';
+	}
+
+	bool is_letter(char character) {
+		return (character >= 'a' && character <= 'z') || (character >= 'A' && character <= 'Z') || character == '_';
+	}
+
+	bool is_alphanumeric(char character) {
+		return is_digit(character) || is_letter(character);
+	}
+
 }

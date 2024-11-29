@@ -2,8 +2,10 @@
 #include <string>
 #include <filesystem>
 #include "Utilities/Utilities.h"
+#include <unordered_map>
 
 namespace Anthem {
+	
 	enum TokenType {
 		// -- Single Character Tokens --
 			// Grouped Tokens
@@ -85,6 +87,7 @@ namespace Anthem {
 			KEY_BOOL,
 
 		// -- Types --
+			IDENTIFIER,
 			TYPE_I8,
 			TYPE_I16,
 			TYPE_I32,
@@ -96,6 +99,8 @@ namespace Anthem {
 
 		// -- Special --
 			SPECIAL_EOF,
+			SPECIAL_ERROR,
+			NO_TYPE,
 	};
 
 	struct Token {
@@ -104,4 +109,37 @@ namespace Anthem {
 		
 		Position position;
 	};
+
+	const std::unordered_map<std::string, TokenType> keyword_map = {
+		{ "and"		, AND	},
+		{ "or"		, OR	},
+		{ "true"	, TRUE	},
+		{ "false"	, FALSE	},
+		{ "if"		, IF	},
+		{ "else"	, ELSE	},
+		{ "while"	, WHILE	},
+		{ "loop"	, LOOP	},
+		{ "for"		, FOR	},
+		{ "return"	, RETURN	},
+		{ "fn"		, FUNCTION	},
+		{ "do"		, DO	},
+		{ "break"	, BREAK	},
+		{ "continue", CONTINUE	},
+		{ "class"	, CLASS	},
+		{ "this"	, THIS	},
+		{ "enum"	, ENUM	},
+		{ "i8"		, KEY_I8	},
+		{ "i16"		, KEY_I16	},
+		{ "i32"		, KEY_I32	},
+		{ "i64"		, KEY_I64	},
+		{ "f32"		, KEY_F32	},
+		{ "f64"		, KEY_F64	},
+		{ "bool"	, KEY_BOOL	},
+	};
+
+	inline TokenType get_keyword(const std::string& name) {
+		if (keyword_map.find(name) != keyword_map.end())
+			return keyword_map.at(name);
+		return NO_TYPE;
+	}
 }

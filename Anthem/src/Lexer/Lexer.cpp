@@ -11,6 +11,8 @@ namespace Anthem {
 				m_current_char = m_source_code[m_current_source_index++];
 			else
 				m_current_char = '\0';
+			m_current_position.src_start_index = m_current_source_index;
+			m_current_position.src_end_index = m_current_source_index;
 		}
 	}
 
@@ -21,6 +23,14 @@ namespace Anthem {
 			return m_source_code[m_current_source_index + depth];
 		else
 			return '\0';
+	}
+
+	bool Lexer::match(char character) {
+		if (peek() == character) {
+			advance();
+			return true;
+		}
+		return false;
 	}
 
 	char Lexer::current_character() {
@@ -41,6 +51,7 @@ namespace Anthem {
 			// In case of a newline, increase the current line index
 			case '\n':
 				m_current_line++;
+				m_current_position.src_line = m_current_line;
 				advance();
 				break;
 			case '/':
@@ -73,12 +84,115 @@ namespace Anthem {
 	}
 
 	Token Lexer::lex() {
+		// Skip over any whitespace
+		handle_whitespace();
 
+		if (is_digit(current_character())) return make_number_token();
+		if (is_letter(current_character())) return make_name_token();
+
+		Position position = m_current_position;
+
+		// Position that has the end index increased, in case the Token will be of double characters
+		Position next_position = position;
+		next_position.src_end_index++;
+
+		switch (current_character())
+		{
+		case '(':	return Token{ LEFT_PARENTHESIS, "(", position };
+		case ')':	return Token{ RIGHT_PARENTHESIS, ")", position };
+		case '{':	return Token{ LEFT_BRACE, "{", position };
+		case '}':	return Token{ RIGHT_BRACE, "}", position };
+		case '[':	return Token{ LEFT_BRACKET, "[", position };
+		case ']':	return Token{ RIGHT_BRACKET, "]", position };
+		case ';':	return Token{ SEMICOLON, ";", position };
+		case ',':	return Token{ COMMA, ",", position };
+		case '.':	return Token{ DOT, ".", position };
+		case '^':	return Token{ CAP, "^", position };
+		case '&':	return Token{ AMPERSAND, "&", position };
+		case '~':	return Token{ TILDE, "~", position };
+		// Check for double character tokens
+		case '+':	return match('=') ? Token{ PLUS_EQUAL, "+=", next_position } : Token{ PLUS, "+", position };
+		case '-':	return match('=') ? Token{ MINUS_EQUAL, "-=", next_position } : Token{ MINUS, "-", position };
+		case '*':	return match('=') ? Token{ STAR_EQUAL, "*=", next_position } : Token{ STAR, "*", position };
+		case '/':	return match('=') ? Token{ SLASH_EQUAL, "/=", next_position } : Token{ SLASH, "/", position };
+		case '!':	return match('=') ? Token{ BANG_EQUAL, "!=", next_position } : Token{ BANG, "!", position };
+		case '=':	return match('=') ? Token{ EQUAL_EQUAL, "==", next_position } : Token{ EQUAL, "=", position };
+		case '<':	return match('=') ? Token{ LESS_EQUAL, "<=", next_position } : Token{ LESS, "<", position };
+		case '>':	return match('=') ? Token{ GREATER_EQUAL, ">=", next_position } : Token{ GREATER, ">", position };
+		case '"':	return make_string_token();
+		case '\0':	return Token{ SPECIAL_EOF, "EOF", position };
+		default:
+			break;
+		}
+
+		// If this part of the code reached then current character matches is unknown, report an error
+		m_error_handler->report_error(Error{ std::format("Unkown Character '{0}'", current_character()), position });
+		return Token{SPECIAL_ERROR, "", position};
 	}
 
-	const std::vector<Token>& Lexer::analyze(const std::string& source) {
+	Token Lexer::make_number_token() {
+		std::string number_value{ "" };
+		bool is_floating_point{ false };
+
+		// Store position for start index
+		Position position = m_current_position;
+
+		// Make a number from all digits next to eachother in the string
+		while (is_digit(current_character()) || current_character() == '.') {
+			if (current_character() == '.') {
+				// If there was already a dot in this number, report an unexpected dot error
+				if (is_floating_point)
+					m_error_handler->report_error(Error{ "Unexpected '.'", m_current_position });
+				else {
+					is_floating_point = true;
+					number_value += current_character();
+					advance();
+				}
+			}
+			else {
+				number_value += current_character();
+				advance();
+			}
+		}
+
+		position.src_end_index = m_current_source_index;
+
+		return is_floating_point ? Token{ TYPE_F32, number_value, position } : Token{ TYPE_I32, number_value, position };
+	}
+
+	Token Lexer::make_name_token() {
+		std::string name_string{ "" };
+
+		// Store position for start index
+		Position position = m_current_position;
+
+		// Make name from all characters next to eachother in the string
+		while (is_alphanumeric(current_character())) {
+			name_string += current_character();
+			advance();
+		}
+
+		position.src_end_index = m_current_source_index;
+
+		TokenType keyword_type = get_keyword(name_string);
+		return keyword_type == NO_TYPE ? Token{ IDENTIFIER, name_string, position } : Token{ keyword_type, name_string, position};
+	}
+
+	Token Lexer::make_string_token() {
+		// TO-DO
+	}
+
+	const std::vector<Token>& Lexer::analyze(const std::string& source, const std::filesystem::path& file_path) {
 		m_current_source_index = -1;
 		m_source_code = source;
 		m_current_line = 0;
+		m_current_position.src_file_path = file_path;
+		m_tokens.clear();
+
+		// Lex until End of File
+		while (current_character() != '\0')
+			m_tokens.push_back(lex());
+
+		return m_tokens;
 	}
 }
