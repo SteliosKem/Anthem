@@ -61,6 +61,7 @@ namespace Anthem {
 		// --
 
 		// -- Keywords --
+			LET,
 			AND,
 			OR,
 			TRUE,
@@ -111,6 +112,7 @@ namespace Anthem {
 	};
 
 	const std::unordered_map<std::string, TokenType> keyword_map = {
+		{ "let"		, LET	},
 		{ "and"		, AND	},
 		{ "or"		, OR	},
 		{ "true"	, TRUE	},

@@ -11,6 +11,10 @@ namespace Anthem {
 		// Analyze whole source code
 		const std::vector<Token>& analyze(const std::string& source, const std::filesystem::path& file_path = "");
 
+		// Print the list of tokens to the console (in an almost readable way)
+		void pretty_print();
+		static void pretty_print(const std::vector<Token>& tokens);
+
 		const std::vector<Token>& get_tokens();
 	private:
 

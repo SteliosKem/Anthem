@@ -8,7 +8,11 @@ namespace Anthem {
 
 	void ErrorHandler::print_errors() {
 		for (auto& error : m_errors) {
-			log(LogType::ERROR, error.message + " at line: " + std::to_string(error.src_line));
+			log(LogType::ERROR, error.message + " at line: " + std::to_string(error.token_position.src_line));
 		}
+	}
+
+	bool ErrorHandler::has_errors() {
+		return !m_errors.empty();
 	}
 }

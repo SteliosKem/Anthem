@@ -1,14 +1,38 @@
 #include "Lexer.h"
+#include <iostream>
 
 namespace Anthem {
 	Lexer::Lexer(ErrorHandler* error_handler) : m_error_handler{ error_handler } {}
 
+	const std::vector<Token>& Lexer::get_tokens() {
+		return m_tokens;
+	}
+
+	void Lexer::pretty_print() {
+		pretty_print(m_tokens);
+	}
+
+	void Lexer::pretty_print(const std::vector<Token>& tokens) {
+		std::cout << "Line:\t  TokenType:\t  Value:\n";
+		int current_line = -1;
+		for (auto& token : tokens) {
+			if (token.position.src_line != current_line) {
+				current_line = token.position.src_line;
+				std::cout << current_line;
+			}
+			else
+				std::cout << '|';
+			std::cout << "\t| " << token.type << "\t\t| " << token.value << "\n";
+		}
+	}
+
 	void Lexer::advance(uint32_t times) {
 		// If new index does not exceed the length of the source file then set the current character
 		// to the one of the source string at the new index, else set it to a null character, indicating End of File
-		for (int i = 0; i < times; i++) {
+		for (uint32_t i = 0; i < times; i++) {
+			m_current_source_index++;
 			if (m_current_source_index < m_source_code.size())
-				m_current_char = m_source_code[m_current_source_index++];
+				m_current_char = m_source_code[m_current_source_index];
 			else
 				m_current_char = '\0';
 			m_current_position.src_start_index = m_current_source_index;
@@ -57,7 +81,7 @@ namespace Anthem {
 			case '/':
 				// Handle Single-Line comments
 				if (peek() == '/') {
-					while (current_character() != '\n' || current_character == '\0')
+					while (current_character() != '\n' || current_character() == '\0')
 						advance();
 					advance();
 					return;
@@ -96,29 +120,31 @@ namespace Anthem {
 		Position next_position = position;
 		next_position.src_end_index++;
 
+		Token to_return;
+
 		switch (current_character())
 		{
-		case '(':	return Token{ LEFT_PARENTHESIS, "(", position };
-		case ')':	return Token{ RIGHT_PARENTHESIS, ")", position };
-		case '{':	return Token{ LEFT_BRACE, "{", position };
-		case '}':	return Token{ RIGHT_BRACE, "}", position };
-		case '[':	return Token{ LEFT_BRACKET, "[", position };
-		case ']':	return Token{ RIGHT_BRACKET, "]", position };
-		case ';':	return Token{ SEMICOLON, ";", position };
-		case ',':	return Token{ COMMA, ",", position };
-		case '.':	return Token{ DOT, ".", position };
-		case '^':	return Token{ CAP, "^", position };
-		case '&':	return Token{ AMPERSAND, "&", position };
-		case '~':	return Token{ TILDE, "~", position };
+		case '(':	advance(); return Token{ LEFT_PARENTHESIS, "(", position };
+		case ')':	advance(); return Token{ RIGHT_PARENTHESIS, ")", position };
+		case '{':	advance(); return Token{ LEFT_BRACE, "{", position };
+		case '}':	advance(); return Token{ RIGHT_BRACE, "}", position };
+		case '[':	advance(); return Token{ LEFT_BRACKET, "[", position };
+		case ']':	advance(); return Token{ RIGHT_BRACKET, "]", position };
+		case ';':	advance(); return Token{ SEMICOLON, ";", position };
+		case ',':	advance(); return Token{ COMMA, ",", position };
+		case '.':	advance(); return Token{ DOT, ".", position };
+		case '^':	advance(); return Token{ CAP, "^", position };
+		case '&':	advance(); return Token{ AMPERSAND, "&", position };
+		case '~':	advance(); return Token{ TILDE, "~", position };
 		// Check for double character tokens
-		case '+':	return match('=') ? Token{ PLUS_EQUAL, "+=", next_position } : Token{ PLUS, "+", position };
-		case '-':	return match('=') ? Token{ MINUS_EQUAL, "-=", next_position } : Token{ MINUS, "-", position };
-		case '*':	return match('=') ? Token{ STAR_EQUAL, "*=", next_position } : Token{ STAR, "*", position };
-		case '/':	return match('=') ? Token{ SLASH_EQUAL, "/=", next_position } : Token{ SLASH, "/", position };
-		case '!':	return match('=') ? Token{ BANG_EQUAL, "!=", next_position } : Token{ BANG, "!", position };
-		case '=':	return match('=') ? Token{ EQUAL_EQUAL, "==", next_position } : Token{ EQUAL, "=", position };
-		case '<':	return match('=') ? Token{ LESS_EQUAL, "<=", next_position } : Token{ LESS, "<", position };
-		case '>':	return match('=') ? Token{ GREATER_EQUAL, ">=", next_position } : Token{ GREATER, ">", position };
+		case '+':	to_return = match('=') ? Token{ PLUS_EQUAL, "+=", next_position } : Token{ PLUS, "+", position }; advance(); return to_return;
+		case '-':	to_return = match('=') ? Token{ MINUS_EQUAL, "-=", next_position } : Token{ MINUS, "-", position }; advance(); return to_return;
+		case '*':	to_return = match('=') ? Token{ STAR_EQUAL, "*=", next_position } : Token{ STAR, "*", position }; advance(); return to_return;
+		case '/':	to_return = match('=') ? Token{ SLASH_EQUAL, "/=", next_position } : Token{ SLASH, "/", position }; advance(); return to_return;
+		case '!':	to_return = match('=') ? Token{ BANG_EQUAL, "!=", next_position } : Token{ BANG, "!", position }; advance(); return to_return;
+		case '=':	to_return = match('=') ? Token{ EQUAL_EQUAL, "==", next_position } : Token{ EQUAL, "=", position }; advance(); return to_return;
+		case '<':	to_return = match('=') ? Token{ LESS_EQUAL, "<=", next_position } : Token{ LESS, "<", position }; advance(); return to_return;
+		case '>':	to_return = match('=') ? Token{ GREATER_EQUAL, ">=", next_position } : Token{ GREATER, ">", position }; advance(); return to_return;
 		case '"':	return make_string_token();
 		case '\0':	return Token{ SPECIAL_EOF, "EOF", position };
 		default:
@@ -180,6 +206,7 @@ namespace Anthem {
 
 	Token Lexer::make_string_token() {
 		// TO-DO
+		return Token{};
 	}
 
 	const std::vector<Token>& Lexer::analyze(const std::string& source, const std::filesystem::path& file_path) {
@@ -188,10 +215,13 @@ namespace Anthem {
 		m_current_line = 0;
 		m_current_position.src_file_path = file_path;
 		m_tokens.clear();
+		advance();
 
 		// Lex until End of File
-		while (current_character() != '\0')
+		do
 			m_tokens.push_back(lex());
+		while (current_character() != '\0');
+		m_tokens.push_back(Token{SPECIAL_EOF, "EOF", m_current_position});
 
 		return m_tokens;
 	}

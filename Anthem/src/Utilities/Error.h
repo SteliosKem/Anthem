@@ -25,6 +25,9 @@ namespace Anthem {
 
 		// Log all errors to the console
 		void print_errors();
+
+		// Return if there were any errors throughout compilation
+		bool has_errors();
 	private:
 		std::vector<Error> m_errors;
 	};
