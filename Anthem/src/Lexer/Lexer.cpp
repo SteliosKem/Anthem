@@ -16,6 +16,7 @@ namespace Anthem {
 		std::cout << "Line:\t  TokenType:\t  Value:\n";
 		int current_line = -1;
 		for (auto& token : tokens) {
+			// Output 'Repeating' Symbol if the line did not change from the previous token
 			if (token.position.src_line != current_line) {
 				current_line = token.position.src_line;
 				std::cout << current_line;

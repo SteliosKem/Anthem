@@ -1,8 +1,12 @@
 #pragma once
 #include <filesystem>
 #include <string>
+#include <memory>
 
 namespace Anthem {
+	template<typename T>
+	using ptr = std::shared_ptr<T>;
+
 	struct Position {
 		std::filesystem::path src_file_path{ "" };
 
