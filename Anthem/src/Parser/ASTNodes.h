@@ -33,11 +33,6 @@ namespace Anthem {
 		virtual NodeType get_type() const = 0;
 	};
 
-	class ProgramNode : public ASTNode {
-	public:
-		NODE_TYPE(PROGRAM);
-	};
-
 	class ExpressionNode : public ASTNode {
 	public:
 		NODE_TYPE(EXPRESSION);
@@ -46,6 +41,17 @@ namespace Anthem {
 	class DeclarationNode : public ASTNode {
 	public:
 		NODE_TYPE(DECLARATION);
+	};
+
+	using DeclarationList = std::vector<ptr<DeclarationNode>>;
+
+	class ProgramNode : public ASTNode {
+	public:
+		ProgramNode(const DeclarationList& list) : declarations{ list } {}
+
+		NODE_TYPE(PROGRAM);
+	public:
+		DeclarationList declarations;
 	};
 
 	class StatementNode : public ASTNode {

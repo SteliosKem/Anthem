@@ -144,4 +144,6 @@ namespace Anthem {
 			return keyword_map.at(name);
 		return NO_TYPE;
 	}
+
+	using TokenList = std::vector<Token>;
 }
