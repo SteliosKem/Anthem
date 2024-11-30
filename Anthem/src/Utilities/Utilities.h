@@ -7,9 +7,6 @@ namespace Anthem {
 	template<typename T>
 	using ptr = std::shared_ptr<T>;
 
-	template<typename T>
-	ptr<T> new_ptr(T t) { return std::make_shared<T>(t) }
-
 	struct Position {
 		std::filesystem::path src_file_path{ "" };
 

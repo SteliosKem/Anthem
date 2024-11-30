@@ -168,8 +168,10 @@ namespace Anthem {
 		while (is_digit(current_character()) || current_character() == '.') {
 			if (current_character() == '.') {
 				// If there was already a dot in this number, report an unexpected dot error
-				if (is_floating_point)
+				if (is_floating_point) {
 					m_error_handler->report_error(Error{ "Unexpected '.'", m_current_position });
+					return Token{SPECIAL_ERROR, "Unexpected '.'", m_current_position };
+				}
 				else {
 					is_floating_point = true;
 					number_value += current_character();
@@ -219,9 +221,9 @@ namespace Anthem {
 		advance();
 
 		// Lex until End of File
-		do
+		while (current_character() != '\0' && !m_error_handler->has_errors())
 			m_tokens.push_back(lex());
-		while (current_character() != '\0');
+		
 		m_tokens.push_back(Token{SPECIAL_EOF, "EOF", m_current_position});
 
 		return m_tokens;

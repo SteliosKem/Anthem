@@ -2,8 +2,8 @@
 #include "Utilities/Utilities.h"
 
 namespace Anthem {
-	// Macro to simplify basic setup for all node classes
-	#define NODE_TYPE(x) NodeType get_type() const override { return NodeType::x; }
+// Macro to simplify basic setup for all node classes
+#define NODE_TYPE(x) NodeType get_type() const override { return NodeType::x; }
 
 	// Using 'Name' type in case it gets changed from std::string
 	using Name = std::string;
@@ -16,7 +16,7 @@ namespace Anthem {
 			EXPRESSION,
 
 		PROGRAM,
-		FUNCTION,
+		FUNCTION_DECLARATION,
 		
 		// Expressions
 			INT_LITERAL,
@@ -35,28 +35,29 @@ namespace Anthem {
 
 	class ExpressionNode : public ASTNode {
 	public:
-		NODE_TYPE(EXPRESSION);
+		NODE_TYPE(EXPRESSION)
 	};
 
 	class DeclarationNode : public ASTNode {
 	public:
-		NODE_TYPE(DECLARATION);
+		NODE_TYPE(DECLARATION)
 	};
 
 	using DeclarationList = std::vector<ptr<DeclarationNode>>;
 
 	class ProgramNode : public ASTNode {
 	public:
+		ProgramNode() = default;
 		ProgramNode(const DeclarationList& list) : declarations{ list } {}
 
-		NODE_TYPE(PROGRAM);
+		NODE_TYPE(PROGRAM)
 	public:
 		DeclarationList declarations;
 	};
 
 	class StatementNode : public ASTNode {
 	public:
-		NODE_TYPE(STATEMENT);
+		NODE_TYPE(STATEMENT)
 	};
 
 	// Declaration Nodes
@@ -65,6 +66,8 @@ namespace Anthem {
 	public:
 		FunctionDeclarationNode(const Name& name, ptr<StatementNode> body)
 			: name{ name }, body{ body } {}
+
+		NODE_TYPE(FUNCTION_DECLARATION)
 	public:
 		Name name;
 		ptr<StatementNode> body;
@@ -76,7 +79,7 @@ namespace Anthem {
 	public:
 		IntegerLiteralNode(int number) : integer{number} {}
 
-		NODE_TYPE(INT_LITERAL);
+		NODE_TYPE(INT_LITERAL)
 	public:
 		int integer;
 	};
@@ -89,7 +92,7 @@ namespace Anthem {
 	public:
 		GroupStatementNode(const GroupStatement& group) : statements{ group } {}
 
-		NODE_TYPE(GROUP_STATEMENT);
+		NODE_TYPE(GROUP_STATEMENT)
 	public:
 		GroupStatement statements;
 	};
@@ -98,7 +101,7 @@ namespace Anthem {
 	public:
 		ReturnStatementNode(ptr<ExpressionNode> expr) : expression{ expr } {}
 
-		NODE_TYPE(RETURN_STATEMENT);
+		NODE_TYPE(RETURN_STATEMENT)
 	public:
 		ptr<ExpressionNode> expression;
 	};

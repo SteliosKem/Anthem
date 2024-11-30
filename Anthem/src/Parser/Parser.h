@@ -9,6 +9,7 @@ namespace Anthem {
 		Parser(ErrorHandler* handler);
 
 		ptr<ProgramNode> parse(const TokenList& tokens);
+		static void pretty_print(ptr<ASTNode> node, const std::string& padding = "");
 	private:
 		// Utility
 
@@ -24,8 +25,15 @@ namespace Anthem {
 		// Advance if current Token is of desired type, else report an Error for Unexpected Token
 		bool consume(TokenType token_type, const std::string& error_message);
 
+		// Return true and advance if current token matches the specified type
+		bool match(TokenType token_type);
+		bool is_current(TokenType token_type);
+
 		// Called if an error occurs, skips Tokens in order to get to an Error-free state
 		void stabilize();
+
+		// Error Handling
+		void report_error(const std::string& error_message);
 	private:
 		// Program Parsing
 		
@@ -34,6 +42,7 @@ namespace Anthem {
 		// Declaration Parsing
 
 		ptr<DeclarationNode> parse_declaration();
+		ptr<DeclarationNode> parse_function_declaration();
 
 		// Statement Parsing
 
@@ -48,6 +57,9 @@ namespace Anthem {
 	private:
 		int m_current_token_index{ 0 };
 		ErrorHandler* m_error_handler{ nullptr };
+		Token* m_current_token{ nullptr };
+
+		bool m_error_occured{ false };
 
 		TokenList m_tokens;
 	};

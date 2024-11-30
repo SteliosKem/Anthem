@@ -1,4 +1,2 @@
-let ab = 5 + 2;
-fn func() {
-	print(5);
-}
+fn my_function()
+	return 5;
