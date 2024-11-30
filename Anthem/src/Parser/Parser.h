@@ -22,7 +22,7 @@ namespace Anthem {
 		const Token& peek(uint32_t depth = 1) const;
 
 		// Advance if current Token is of desired type, else report an Error for Unexpected Token
-		void consume(TokenType token_type, const std::string& error_message);
+		bool consume(TokenType token_type, const std::string& error_message);
 
 		// Called if an error occurs, skips Tokens in order to get to an Error-free state
 		void stabilize();
@@ -46,8 +46,8 @@ namespace Anthem {
 		ptr<ExpressionNode> parse_factor();
 
 	private:
-		int m_current_token_index;
-		ErrorHandler* m_error_handler;
+		int m_current_token_index{ 0 };
+		ErrorHandler* m_error_handler{ nullptr };
 
 		TokenList m_tokens;
 	};
