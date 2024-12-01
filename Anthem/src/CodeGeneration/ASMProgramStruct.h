@@ -4,12 +4,12 @@
 #include "Utilities/Utilities.h"
 
 namespace Anthem {
-	// Macro to simplify basic setup for all node classes
+// Macro to simplify basic setup for all node classes
 #define ASM_NODE_TYPE(x) ASMNodeType get_type() const override { return ASMNodeType::x; }
 
 	using Name = std::string;
 
-	enum Register {
+	enum class Register {
 		EAX
 	};
 
@@ -21,6 +21,7 @@ namespace Anthem {
 
 		FUNCTION,
 
+		INSTRUCTION_PACK,
 		INTEGER,
 		REGISTER,
 		RETURN,
@@ -67,20 +68,21 @@ namespace Anthem {
 
 	class ASMFunctionNode : public ASMDeclarationNode {
 	public:
-		ASMFunctionNode(const Name& name, const ASMInstructionList& instructions)
-			: name{ name }, instructions{ instructions } {}
+		ASMFunctionNode() = default;
+		ASMFunctionNode(const Name& name, ptr<ASMInstructionNode> instruction)
+			: name{ name }, instruction{ instruction } {}
 
 		ASM_NODE_TYPE(FUNCTION)
 	public:
 		Name name;
-		ASMInstructionList instructions;
+		ptr<ASMInstructionNode> instruction;
 	};
 
 	// Operand Nodes
 
-	class INTOperandNode : public ASMOperandNode {
+	class IntegerOperandNode : public ASMOperandNode {
 	public:
-		INTOperandNode(int number) : integer{ number } {}
+		IntegerOperandNode(int number) : integer{ number } {}
 
 		ASM_NODE_TYPE(INTEGER)
 	public:
@@ -95,8 +97,19 @@ namespace Anthem {
 	public:
 		Register register_op;
 	};
+	// Macro to simplify setting a register as an operand
+#define REGISTER(x) std::make_shared<RegisterOperandNode>(Register::x)
 
 	// Instruction Nodes
+
+	class InstructionPackNode : public ASMInstructionNode {
+	public:
+		InstructionPackNode() = default;
+		InstructionPackNode(const ASMInstructionList& list) : instruction_list{ list } {}
+		ASM_NODE_TYPE(INSTRUCTION_PACK)
+	public:
+		ASMInstructionList instruction_list;
+	};
 
 	class ReturnInstructionNode : public ASMInstructionNode {
 	public:
@@ -108,7 +121,7 @@ namespace Anthem {
 		MoveInstructionNode(ptr<ASMOperandNode> source, ptr<ASMOperandNode> destination)
 			: source{ source }, destination{ destination } {}
 
-		ASM_NODE_TYPE(REGISTER)
+		ASM_NODE_TYPE(MOVE)
 	public:
 		ptr<ASMOperandNode> source;
 		ptr<ASMOperandNode> destination;
