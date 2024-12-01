@@ -39,15 +39,18 @@ int main(int argc, char* argv[]) {
 		else {
 			std::cout << "Parse Tree for file: " << argv[1] << "\n";
 			Anthem::Parser::pretty_print(program_node);
+
+
+			Anthem::CodeGenerator code_gen(&error_handler);
+			Anthem::ptr<Anthem::ASMProgramNode> asm_node = code_gen.generate(program_node);
+
+			std::string output{ "" };
+			Anthem::x86_GAS_Emitter emitter{};
+			emitter.emit(asm_node, output);
+			std::cout << "\n\nAssembly Output for file: " << argv[1] << "\n" << output << "\n";
 		}
 
-		Anthem::CodeGenerator code_gen(&error_handler);
-		Anthem::ptr<Anthem::ASMProgramNode> asm_node = code_gen.generate(program_node);
-
-		std::string output{ "" };
-		Anthem::x86_GAS_Emitter emitter{};
-		emitter.emit(asm_node, output);
-		std::cout << "\n\nAssembly Output for file: " << argv[1] << "\n" << output << "\n";
+		
 	}
 
 	return 0;

@@ -32,13 +32,20 @@ namespace Anthem {
 			}
 			case NodeType::RETURN_STATEMENT: {
 				ptr<ReturnStatementNode> return_node = std::static_pointer_cast<ReturnStatementNode>(node);
-				std::cout << padding << "Return (";
+				std::cout << padding << "Return ";
 				pretty_print(return_node->expression);
-				std::cout << ")\n";
+				std::cout << "\n";
 				break;
 			}
 			case NodeType::INT_LITERAL: {
 				std::cout << std::static_pointer_cast<IntegerLiteralNode>(node)->integer;
+				break;
+			}
+			case NodeType::UNARY_OPERATION: {
+				ptr<UnaryOperationNode> unary_op = std::static_pointer_cast<UnaryOperationNode>(node);
+				std::cout << unary_op->operator_token.value << '(';
+				pretty_print(unary_op->expression);
+				std::cout << ')';
 				break;
 			}
 		default:
@@ -79,7 +86,7 @@ namespace Anthem {
 		return false;
 	}
 
-	bool Parser::is_current(TokenType token_type) {
+	bool Parser::is_current(TokenType token_type) const {
 		return current_token().type == token_type;
 	}
 
@@ -149,14 +156,27 @@ namespace Anthem {
 	}
 
 	ptr<ExpressionNode> Parser::parse_expression() {
-		// Handle only integer literals for now
 		return parse_factor();
 	}
 
 	ptr<ExpressionNode> Parser::parse_factor() {
 		Token token = current_token();
-		if (!consume(TYPE_I32, "Expected Expression")) return nullptr;
-		// Make Integer Literal from current token value
-		return std::make_shared<IntegerLiteralNode>(stoi(token.value));
+		switch (token.type) {
+		case TYPE_I32:
+			// Make Integer Literal from current token value
+			advance();
+			return std::make_shared<IntegerLiteralNode>(stoi(token.value));
+
+		// All these Tokens when in parse_factor make up unary operations
+		case MINUS:
+		case PLUS:
+		case TILDE:
+			advance();
+			return std::make_shared<UnaryOperationNode>(token, parse_factor());
+		default:
+			report_error("Expected Expression");
+			return nullptr;
+		}
+		
 	}
 }

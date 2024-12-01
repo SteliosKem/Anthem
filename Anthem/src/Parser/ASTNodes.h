@@ -1,5 +1,6 @@
 #pragma once
 #include "Utilities/Utilities.h"
+#include "Lexer/Token.h"
 
 namespace Anthem {
 // Macro to simplify basic setup for all node classes
@@ -19,6 +20,7 @@ namespace Anthem {
 		FUNCTION_DECLARATION,
 		
 		// Expressions
+			UNARY_OPERATION,
 			INT_LITERAL,
 
 		// Statements
@@ -74,6 +76,17 @@ namespace Anthem {
 	};
 
 	// Expression Nodes
+
+	class UnaryOperationNode : public ExpressionNode {
+	public:
+		UnaryOperationNode(Token operator_token, ptr<ExpressionNode> expression) 
+			: operator_token{ operator_token }, expression{ expression } {}
+
+		NODE_TYPE(UNARY_OPERATION)
+	public:
+		Token operator_token;
+		ptr<ExpressionNode> expression;
+	};
 
 	class IntegerLiteralNode : public ExpressionNode {
 	public:
