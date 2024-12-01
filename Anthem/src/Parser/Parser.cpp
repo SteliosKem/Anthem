@@ -173,6 +173,12 @@ namespace Anthem {
 		case TILDE:
 			advance();
 			return std::make_shared<UnaryOperationNode>(token, parse_factor());
+		case LEFT_PARENTHESIS: {
+			advance();
+			ptr<ExpressionNode> expression = parse_expression();
+			consume(RIGHT_PARENTHESIS, "Expected ')'");
+			return expression;
+		}
 		default:
 			report_error("Expected Expression");
 			return nullptr;

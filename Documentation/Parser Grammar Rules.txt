@@ -1,0 +1,17 @@
+Definitions:
+= : (Consists of)
+* : (Repeating)
+| : (Or)
+
+Anthem Grammar:
+<program> 	= <declaration>*
+<declaration> 	= <function>
+<function>	= "fn" <identifier> "()" "->" <type> <statement>
+<statement>	= <return> ";"
+<return>	= "return" <expression>
+<expression>	= <literal> | <unaryop> <expression> | "(" <expression> ")"
+<unaryop>	= "-" | "~"
+<type>		= <int>
+
+<int>
+<identifier>
