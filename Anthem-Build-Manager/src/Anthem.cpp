@@ -6,6 +6,7 @@
 #include "Parser/Parser.h"
 #include "CodeGeneration/CodeGenerator.h"
 #include "CodeEmission/x86_GAS_Emitter.h"
+#include "AIR/AIR.h"
 
 namespace Anthem {
 	
@@ -39,15 +40,20 @@ int main(int argc, char* argv[]) {
 		else {
 			std::cout << "Parse Tree for file: " << argv[1] << "\n";
 			Anthem::Parser::pretty_print(program_node);
+			std::cout << "\n";
 
+			Anthem::AIRGenerator air_gen(&error_handler);
+			Anthem::ptr<Anthem::AIRProgramNode> air_node = air_gen.generate(program_node);
+			std::cout << "\nAIR Output:\n";
+			Anthem::AIRGenerator::pretty_print(air_node);
 
 			Anthem::CodeGenerator code_gen(&error_handler);
 			Anthem::ptr<Anthem::ASMProgramNode> asm_node = code_gen.generate(program_node);
-
+			
 			std::string output{ "" };
 			Anthem::x86_GAS_Emitter emitter{};
 			emitter.emit(asm_node, output);
-			std::cout << "\n\nAssembly Output for file: " << argv[1] << "\n" << output << "\n";
+			std::cout << "\nAssembly Output for file: " << argv[1] << "\n" << output << "\n";
 		}
 
 		
