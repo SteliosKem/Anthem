@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include "Utilities/Utilities.h"
+#include <deque>
 
 namespace Anthem {
 // Macro to simplify basic setup for all node classes
@@ -10,7 +11,8 @@ namespace Anthem {
 	using Name = std::string;
 
 	enum class Register {
-		EAX
+		EAX,
+		R10D,
 	};
 
 	enum class ASMNodeType {
@@ -21,11 +23,19 @@ namespace Anthem {
 
 		FUNCTION,
 
-		INSTRUCTION_PACK,
+		// -- Operands --
+
 		INTEGER,
 		REGISTER,
+		PSEUDO_OPERAND,
+		STACK_OPERAND,
+
+		// -- Instructions --
+
 		RETURN,
-		MOVE
+		MOVE,
+		UNARY,
+		ALLOCATE_STACK,
 	};
 
 	// General Nodes
@@ -52,7 +62,7 @@ namespace Anthem {
 	};
 
 	using ASMDeclarationList = std::vector<ptr<ASMDeclarationNode>>;
-	using ASMInstructionList = std::vector<ptr<ASMInstructionNode>>;
+	using ASMInstructionList = std::deque<ptr<ASMInstructionNode>>;
 
 	class ASMProgramNode : public ASMNode {
 	public:
@@ -69,13 +79,13 @@ namespace Anthem {
 	class ASMFunctionNode : public ASMDeclarationNode {
 	public:
 		ASMFunctionNode() = default;
-		ASMFunctionNode(const Name& name, ptr<ASMInstructionNode> instruction)
-			: name{ name }, instruction{ instruction } {}
+		ASMFunctionNode(const Name& name, const ASMInstructionList& instructions)
+			: name{ name }, instructions{ instructions } {}
 
 		ASM_NODE_TYPE(FUNCTION)
 	public:
 		Name name;
-		ptr<ASMInstructionNode> instruction;
+		ASMInstructionList instructions;
 	};
 
 	// Operand Nodes
@@ -102,15 +112,6 @@ namespace Anthem {
 
 	// Instruction Nodes
 
-	class InstructionPackNode : public ASMInstructionNode {
-	public:
-		InstructionPackNode() = default;
-		InstructionPackNode(const ASMInstructionList& list) : instruction_list{ list } {}
-		ASM_NODE_TYPE(INSTRUCTION_PACK)
-	public:
-		ASMInstructionList instruction_list;
-	};
-
 	class ReturnInstructionNode : public ASMInstructionNode {
 	public:
 		ASM_NODE_TYPE(RETURN)
@@ -125,5 +126,45 @@ namespace Anthem {
 	public:
 		ptr<ASMOperandNode> source;
 		ptr<ASMOperandNode> destination;
+	};
+
+	class UnaryInstructionNode : public ASMInstructionNode {
+	public:
+		UnaryInstructionNode(UnaryOperation unary_operation, ptr<ASMOperandNode> operand)
+			: unary_operation{ unary_operation }, operand{ operand } {}
+
+		ASM_NODE_TYPE(UNARY)
+	public:
+		UnaryOperation unary_operation;
+		ptr<ASMOperandNode> operand;
+	};
+
+	class AllocateStackNode : public ASMInstructionNode {
+	public:
+		AllocateStackNode(int position) : position{ position } {}
+
+		ASM_NODE_TYPE(ALLOCATE_STACK)
+	public:
+		int position;
+	};
+
+	class StackOperandNode : public ASMOperandNode {
+	public:
+		StackOperandNode(int position) : position{ position } {}
+
+		ASM_NODE_TYPE(STACK_OPERAND)
+	public:
+		int position;
+	};
+
+	// This also acts as a StackOperandNode
+	class PseudoOperandNode : public ASMOperandNode {
+	public:
+		PseudoOperandNode(Name name) : name{ name } {}
+
+		ASM_NODE_TYPE(PSEUDO_OPERAND)
+	public:
+		Name name;
+		int stack_offset{ 0 };
 	};
 }

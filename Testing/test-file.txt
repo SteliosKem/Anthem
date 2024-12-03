@@ -1,2 +1,2 @@
-fn my_function()
-	return -(~5);
+fn main()
+	return ~(-1);

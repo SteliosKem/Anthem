@@ -23,13 +23,6 @@ namespace Anthem {
 		RETURN,
 	};
 
-	enum UnaryOperation {
-		NEGATE,
-		COMPLEMENT,
-		NOT,
-		NONE
-	};
-
 	// General Nodes
 
 	class AIRNode {

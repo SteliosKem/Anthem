@@ -48,12 +48,16 @@ int main(int argc, char* argv[]) {
 			Anthem::AIRGenerator::pretty_print(air_node);
 
 			Anthem::CodeGenerator code_gen(&error_handler);
-			Anthem::ptr<Anthem::ASMProgramNode> asm_node = code_gen.generate(program_node);
-			
+			Anthem::ptr<Anthem::ASMProgramNode> asm_node = code_gen.generate(air_node);
+
 			std::string output{ "" };
 			Anthem::x86_GAS_Emitter emitter{};
 			emitter.emit(asm_node, output);
 			std::cout << "\nAssembly Output for file: " << argv[1] << "\n" << output << "\n";
+
+			std::filesystem::path path = argv[1];
+			path = path.replace_extension("s");
+			Anthem::write_file(path, output);
 		}
 
 		

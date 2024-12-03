@@ -14,4 +14,11 @@ namespace Anthem {
 
 		return buffer.str();
 	}
+
+	void write_file(const std::filesystem::path& file_path, const std::string& input) {
+		// Open the file
+		std::ofstream file(file_path);
+		file << input;
+		file.close();
+	}
 }

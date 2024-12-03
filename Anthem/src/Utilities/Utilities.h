@@ -7,6 +7,13 @@ namespace Anthem {
 	template<typename T>
 	using ptr = std::shared_ptr<T>;
 
+	enum UnaryOperation {
+		NEGATE,
+		COMPLEMENT,
+		NOT,
+		NONE
+	};
+
 	struct Position {
 		std::filesystem::path src_file_path{ "" };
 
