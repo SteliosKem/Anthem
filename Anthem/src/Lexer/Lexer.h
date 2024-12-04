@@ -26,7 +26,7 @@ namespace Anthem {
 		void advance(uint32_t times = 1);
 
 		// Get a character current + <depth> index
-		char peek(uint32_t depth = 0);
+		char peek(uint32_t depth = 1);
 
 		// Return true and advance if next character matches the given one
 		bool match(char character);

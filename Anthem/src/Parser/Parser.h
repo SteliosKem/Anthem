@@ -51,7 +51,7 @@ namespace Anthem {
 
 		// Expression Parsing
 
-		ptr<ExpressionNode> parse_expression();
+		ptr<ExpressionNode> parse_expression(uint8_t mininum_precedence = 0);
 		ptr<ExpressionNode> parse_factor();
 
 	private:

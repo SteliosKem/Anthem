@@ -21,6 +21,7 @@ namespace Anthem {
 		
 		// Expressions
 			UNARY_OPERATION,
+			BINARY_OPERATION,
 			INT_LITERAL,
 
 		// Statements
@@ -86,6 +87,18 @@ namespace Anthem {
 	public:
 		Token operator_token;
 		ptr<ExpressionNode> expression;
+	};
+
+	class BinaryOperationNode : public ExpressionNode {
+	public:
+		BinaryOperationNode(Token operator_token, ptr<ExpressionNode> left_expression, ptr<ExpressionNode> right_expression)
+			: operator_token{ operator_token }, left_expression{ left_expression }, right_expression{ right_expression } {}
+
+		NODE_TYPE(BINARY_OPERATION)
+	public:
+		Token operator_token;
+		ptr<ExpressionNode> left_expression;
+		ptr<ExpressionNode> right_expression;
 	};
 
 	class IntegerLiteralNode : public ExpressionNode {

@@ -85,19 +85,20 @@ namespace Anthem {
 					while (current_character() != '\n' || current_character() == '\0')
 						advance();
 					advance();
-					return;
+					continue;
 				}
 				// Handle Multi-Line comments
-				else if (peek() == '/*') {
+				else if (peek() == '*') {
 					while (true) {
 						if (current_character() == '\0')
 							return;
 						if (current_character() == '*' && peek() == '/') {
 							advance(2);
-							return;
+							break;
 						}
 						advance();
 					}
+					continue;
 				}
 				// If the slash turned out to not be a comment, stop checking for whitespace
 				else

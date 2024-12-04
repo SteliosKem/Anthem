@@ -17,7 +17,7 @@ namespace Anthem {
 	}
 
 	void x86_GAS_Emitter::emit_global_identifier(const std::string& identifier) {
-		emit_string(".globl " + identifier);
+		emit_string(".globl " + identifier, false);
 		emit_line();
 	}
 

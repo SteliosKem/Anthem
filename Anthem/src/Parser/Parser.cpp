@@ -2,6 +2,36 @@
 #include <iostream>
 
 namespace Anthem {
+	// Small Utility
+	bool is_binary_operator(Token tok) {
+		switch (tok.type)
+		{
+		case PLUS:
+		case MINUS:
+		case STAR:
+		case SLASH:
+		case PERCENT:
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	uint8_t get_precedence(TokenType token_type) {
+		switch (token_type)
+		{
+		case PLUS:
+		case MINUS:
+			return 0;
+		case STAR:
+		case SLASH:
+		case PERCENT:
+			return 1;
+		default:
+			break;
+		}
+	}
+
 	Parser::Parser(ErrorHandler* error_handler) : m_error_handler{ error_handler } {}
 
 	ptr<ProgramNode> Parser::parse(const TokenList& token_list) {
@@ -45,6 +75,17 @@ namespace Anthem {
 				ptr<UnaryOperationNode> unary_op = std::static_pointer_cast<UnaryOperationNode>(node);
 				std::cout << unary_op->operator_token.value << '(';
 				pretty_print(unary_op->expression);
+				std::cout << ')';
+				break;
+			}
+			case NodeType::BINARY_OPERATION: {
+				ptr<BinaryOperationNode> binary_op = std::static_pointer_cast<BinaryOperationNode>(node);
+				std::cout << '(';
+				pretty_print(binary_op->left_expression);
+				std::cout << ' ';
+				std::cout << binary_op->operator_token.value;
+				std::cout << ' ';
+				pretty_print(binary_op->right_expression);
 				std::cout << ')';
 				break;
 			}
@@ -155,8 +196,17 @@ namespace Anthem {
 		return std::make_shared<ReturnStatementNode>(expression);
 	}
 
-	ptr<ExpressionNode> Parser::parse_expression() {
-		return parse_factor();
+	ptr<ExpressionNode> Parser::parse_expression(uint8_t mininum_precedence) {
+		// Parse expression as left side of a binary operation, even if it won't be one
+		ptr<ExpressionNode> left_expression = parse_factor();
+		Token operator_token;
+		while (is_binary_operator(current_token()) && get_precedence(current_token().type) >= mininum_precedence) {
+			operator_token = current_token();
+			advance();
+			ptr<ExpressionNode> right_expression = parse_expression(get_precedence(operator_token.type) + 1);
+			left_expression = std::make_shared<BinaryOperationNode>(operator_token, left_expression, right_expression);
+		}
+		return left_expression;
 	}
 
 	ptr<ExpressionNode> Parser::parse_factor() {
