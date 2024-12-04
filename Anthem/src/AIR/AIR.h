@@ -34,6 +34,7 @@ namespace Anthem {
 
 		ptr<AIRValueNode> resolve_expression(ptr<ExpressionNode> expression, AIRInstructionList& output);
 		ptr<AIRValueNode> unary_operation(ptr<UnaryOperationNode> unary_op, AIRInstructionList& output);
+		ptr<AIRValueNode> binary_operation(ptr<BinaryOperationNode> binary_op, AIRInstructionList& output);
 	private:
 		ErrorHandler* m_error_handler;
 		int m_temp_counter = 0;

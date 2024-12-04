@@ -7,10 +7,19 @@ namespace Anthem {
 	template<typename T>
 	using ptr = std::shared_ptr<T>;
 
-	enum UnaryOperation {
+	enum class UnaryOperation {
 		NEGATE,
 		COMPLEMENT,
 		NOT,
+		NONE
+	};
+
+	enum class BinaryOperation {
+		ADDITION,
+		SUBTRACTION,
+		DIVISION,
+		MULTIPLICATION,
+		REMAINDER,
 		NONE
 	};
 

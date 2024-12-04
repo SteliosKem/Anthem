@@ -18,6 +18,7 @@ namespace Anthem {
 
 		INSTRUCTION_PACK,
 		UNARY_OPERATION,
+		BINARY_OPERATION,
 		INTEGER,
 		VARIABLE,
 		RETURN,
@@ -104,6 +105,19 @@ namespace Anthem {
 	public:
 		UnaryOperation operation;
 		ptr<AIRValueNode> source;
+		ptr<AIRVariableValueNode> destination;
+	};
+
+	class AIRBinaryInstructionNode : public AIRInstructionNode {
+	public:
+		AIRBinaryInstructionNode(BinaryOperation operation, ptr<AIRValueNode> source_a, ptr<AIRValueNode> source_b, ptr<AIRVariableValueNode> destination)
+			: operation{ operation }, source_a{ source_a }, source_b{ source_b }, destination{destination} {}
+
+		AIR_NODE_TYPE(BINARY_OPERATION)
+	public:
+		BinaryOperation operation;
+		ptr<AIRValueNode> source_a;
+		ptr<AIRValueNode> source_b;
 		ptr<AIRVariableValueNode> destination;
 	};
 

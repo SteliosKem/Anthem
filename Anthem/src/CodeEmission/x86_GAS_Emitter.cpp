@@ -70,11 +70,11 @@ namespace Anthem {
 
 	void x86_GAS_Emitter::emit_unary(ptr<UnaryInstructionNode> unary_operation) {
 		switch (unary_operation->unary_operation) {
-		case NEGATE:
+		case UnaryOperation::NEGATE:
 			emit_string("negl ");
 			emit_operand(unary_operation->operand);
 			break;
-		case COMPLEMENT:
+		case UnaryOperation::COMPLEMENT:
 			emit_string("notl ");
 			emit_operand(unary_operation->operand);
 			break;
