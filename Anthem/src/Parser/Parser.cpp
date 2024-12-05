@@ -11,6 +11,15 @@ namespace Anthem {
 		case STAR:
 		case SLASH:
 		case PERCENT:
+		case GREATER:
+		case GREATER_EQUAL:
+		case LESS:
+		case LESS_EQUAL:
+		case EQUAL:
+		case EQUAL_EQUAL:
+		case BANG_EQUAL:
+		case AND:
+		case OR:
 			return true;
 		default:
 			return false;
@@ -22,11 +31,27 @@ namespace Anthem {
 		{
 		case PLUS:
 		case MINUS:
-			return 0;
+			return 4;
+
 		case STAR:
 		case SLASH:
 		case PERCENT:
+			return 5;
+
+		case LESS:
+		case GREATER:
+		case LESS_EQUAL:
+		case GREATER_EQUAL:
+			return 3;
+
+		case EQUAL:
+		case BANG_EQUAL:
+			return 2;
+
+		case AND:
 			return 1;
+		case OR:
+			return 0;
 		default:
 			break;
 		}
@@ -221,6 +246,7 @@ namespace Anthem {
 		case MINUS:
 		case PLUS:
 		case TILDE:
+		case BANG:
 			advance();
 			return std::make_shared<UnaryOperationNode>(token, parse_factor());
 		case LEFT_PARENTHESIS: {

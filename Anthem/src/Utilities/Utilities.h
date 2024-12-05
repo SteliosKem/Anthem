@@ -15,11 +15,24 @@ namespace Anthem {
 	};
 
 	enum class BinaryOperation {
+		// -- Arithmetic --
 		ADDITION,
 		SUBTRACTION,
 		DIVISION,
 		MULTIPLICATION,
 		REMAINDER,
+
+		// -- Logical --
+		AND,
+		OR,
+
+		// -- Relational --
+		GREATER,
+		LESS,
+		GREATER_EQUAL,
+		LESS_EQUAL,
+		EQUAL,
+		NOT_EQUAL,
 		NONE
 	};
 

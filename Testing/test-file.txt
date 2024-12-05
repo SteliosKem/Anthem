@@ -4,4 +4,4 @@
 */
 
 fn main() // Main Function
-	return 5 * (4 + 2) % 3;
+	return 1 > 0 and 5 != 2;

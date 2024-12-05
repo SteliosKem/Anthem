@@ -174,12 +174,18 @@ namespace Anthem {
 							if (binary_instruction->operand_a->get_type() == ASMNodeType::PSEUDO_OPERAND
 								&& binary_instruction->operand_b->get_type() == ASMNodeType::PSEUDO_OPERAND) {
 								auto destination = binary_instruction->operand_b;
+
+								// Move the second operand (which is also the destination) to a scratch register in order to operate on it
 								auto first_move_instruction = std::make_shared<MoveInstructionNode>(destination, REGISTER(R10D));
 								auto begin = function->instructions.begin();
 								function->instructions.insert(std::next(begin, index), first_move_instruction);
+
+								// After the operation, move the the value held by the scratch register to the original destination
 								begin = function->instructions.begin();
 								auto second_move_instruction = std::make_shared<MoveInstructionNode>(REGISTER(R10D), destination);
 								function->instructions.insert(std::next(begin, index + 2), second_move_instruction);
+
+								// Change the destination of the operation to the scratch register
 								binary_instruction->operand_b = REGISTER(R10D);
 							}
 							if (binary_instruction->binary_operation == BinaryOperation::MULTIPLICATION
