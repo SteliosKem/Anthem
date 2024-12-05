@@ -64,8 +64,17 @@ namespace Anthem {
 		case ASMNodeType::UNARY:
 			emit_unary(std::static_pointer_cast<UnaryInstructionNode>(instruction));
 			break;
+		case ASMNodeType::BINARY:
+			emit_binary(std::static_pointer_cast<BinaryInstructionNode>(instruction));
+			break;
 		case ASMNodeType::ALLOCATE_STACK:
 			emit_allocate_stack(std::static_pointer_cast<AllocateStackNode>(instruction));
+			break;
+		case ASMNodeType::DIVIDE:
+			emit_idiv(std::static_pointer_cast<DivideInstructionNode>(instruction));
+			break;
+		case ASMNodeType::SIGN_EXTEND:
+			emit_cdq();
 			break;
 		default:
 			return;

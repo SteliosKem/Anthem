@@ -6,7 +6,7 @@ namespace Anthem {
 	ptr<ASMProgramNode> CodeGenerator::generate(ptr<AIRProgramNode> program) {
 		ptr<ASMProgramNode> asm_program = generate_program(program);
 		replace_pseudo_registers();
-		validate_move_instructions(asm_program);
+		validate_instructions(asm_program);
 		return asm_program;
 	}
 
@@ -48,6 +48,9 @@ namespace Anthem {
 		case AIRNodeType::UNARY_OPERATION:
 			generate_unary(std::static_pointer_cast<AIRUnaryInstructionNode>(instruction_node), list_output);
 			return;
+		case AIRNodeType::BINARY_OPERATION:
+			generate_binary(std::static_pointer_cast<AIRBinaryInstructionNode>(instruction_node), list_output);
+			return;
 		default:
 			return;
 		}
@@ -57,6 +60,28 @@ namespace Anthem {
 		auto destination = resolve_value(unary_node->destination);
 		list_output.push_back(move_instruction(resolve_value(unary_node->source), destination));
 		list_output.push_back(std::make_shared<UnaryInstructionNode>(unary_node->operation, destination));
+	}
+
+	void CodeGenerator::generate_binary(ptr<AIRBinaryInstructionNode> binary_node, ASMInstructionList& list_output) {
+		auto destination = resolve_value(binary_node->destination);
+		auto source_a = resolve_value(binary_node->source_a);
+		auto source_b = resolve_value(binary_node->source_b);
+		if (binary_node->operation == BinaryOperation::DIVISION) {
+			list_output.push_back(move_instruction(source_a, REGISTER(EAX)));
+			list_output.push_back(std::make_shared<SignExtendInstructionNode>());
+			list_output.push_back(std::make_shared<DivideInstructionNode>(source_b));
+			list_output.push_back(move_instruction(REGISTER(EAX), destination));
+			return;
+		}
+		if (binary_node->operation == BinaryOperation::REMAINDER) {
+			list_output.push_back(move_instruction(source_a, REGISTER(EAX)));
+			list_output.push_back(std::make_shared<SignExtendInstructionNode>());
+			list_output.push_back(std::make_shared<DivideInstructionNode>(source_b));
+			list_output.push_back(move_instruction(REGISTER(EDX), destination));
+			return;
+		}
+		list_output.push_back(move_instruction(source_a, destination));
+		list_output.push_back(std::make_shared<BinaryInstructionNode>(binary_node->operation, source_b, destination));
 	}
 
 	void CodeGenerator::generate_return(ptr<AIRReturnInstructionNode> return_node, ASMInstructionList& list_output) {
@@ -117,7 +142,7 @@ namespace Anthem {
 		}
 	}
 
-	void CodeGenerator::validate_move_instructions(ptr<ASMProgramNode> program_node) {
+	void CodeGenerator::validate_instructions(ptr<ASMProgramNode> program_node) {
 		for (auto& declaration : program_node->declarations) {
 			switch (declaration->get_type())
 			{
@@ -127,15 +152,61 @@ namespace Anthem {
 				while (index < function->instructions.size()) {
 					auto instruction = function->instructions[index];
 					switch (instruction->get_type()) {
-					case ASMNodeType::MOVE:
-						auto move_instruction = std::static_pointer_cast<MoveInstructionNode>(instruction);
-						if (move_instruction->source->get_type() == ASMNodeType::PSEUDO_OPERAND
-							&& move_instruction->destination->get_type() == ASMNodeType::PSEUDO_OPERAND) {
-							auto destination = move_instruction->destination;
-							move_instruction->destination = REGISTER(R10D);
-							auto new_move_instruction = std::make_shared<MoveInstructionNode>(REGISTER(R10D), destination);
-							auto begin = function->instructions.begin();
-							function->instructions.insert(std::next(begin, index + 1), new_move_instruction);
+					// Validate Move instructions
+						case ASMNodeType::MOVE: {
+							auto move_instruction = std::static_pointer_cast<MoveInstructionNode>(instruction);
+							// If both operands are stack memory addresses, move value from first address to a scratch register
+							// and then move the value from the scratch register to the other memory address
+							if (move_instruction->source->get_type() == ASMNodeType::PSEUDO_OPERAND
+								&& move_instruction->destination->get_type() == ASMNodeType::PSEUDO_OPERAND) {
+								auto destination = move_instruction->destination;
+								move_instruction->destination = REGISTER(R10D);
+								auto new_move_instruction = std::make_shared<MoveInstructionNode>(REGISTER(R10D), destination);
+								auto begin = function->instructions.begin();
+								function->instructions.insert(std::next(begin, index + 1), new_move_instruction);
+							}
+							break;
+						}
+						case ASMNodeType::BINARY: {
+							auto binary_instruction = std::static_pointer_cast<BinaryInstructionNode>(instruction);
+							// If both operands are stack memory addresses, move value from first address to a scratch register
+							// and then move the value from the scratch register to the other memory address
+							if (binary_instruction->operand_a->get_type() == ASMNodeType::PSEUDO_OPERAND
+								&& binary_instruction->operand_b->get_type() == ASMNodeType::PSEUDO_OPERAND) {
+								auto destination = binary_instruction->operand_b;
+								auto first_move_instruction = std::make_shared<MoveInstructionNode>(destination, REGISTER(R10D));
+								auto begin = function->instructions.begin();
+								function->instructions.insert(std::next(begin, index), first_move_instruction);
+								begin = function->instructions.begin();
+								auto second_move_instruction = std::make_shared<MoveInstructionNode>(REGISTER(R10D), destination);
+								function->instructions.insert(std::next(begin, index + 2), second_move_instruction);
+								binary_instruction->operand_b = REGISTER(R10D);
+							}
+							if (binary_instruction->binary_operation == BinaryOperation::MULTIPLICATION
+								&& binary_instruction->operand_b->get_type() == ASMNodeType::PSEUDO_OPERAND) {
+								auto destination = binary_instruction->operand_b;
+								auto set_move_instruction = std::make_shared<MoveInstructionNode>(destination, REGISTER(R11D));
+								auto begin = function->instructions.begin();
+								function->instructions.insert(std::next(begin, index), set_move_instruction);
+								binary_instruction->operand_b = REGISTER(R11D);
+								begin = function->instructions.begin();
+								auto retrieve_move_instruction = std::make_shared<MoveInstructionNode>(REGISTER(R11D), destination);
+								function->instructions.insert(std::next(begin, index + 2), retrieve_move_instruction);
+							}
+							break;
+						}
+						case ASMNodeType::DIVIDE: {
+							auto div_instruction = std::static_pointer_cast<DivideInstructionNode>(instruction);
+							// If div instruction operates on an integer, move the value to a scratch register
+							// and perform the instruction on that
+							if (div_instruction->operand->get_type() == ASMNodeType::INTEGER) {
+								auto begin = function->instructions.begin();
+								auto source = div_instruction->operand;
+								auto new_move_instruction = std::make_shared<MoveInstructionNode>(source, REGISTER(R10D));
+								function->instructions.insert(std::next(begin, index), new_move_instruction);
+								div_instruction->operand = REGISTER(R10D);
+							}
+							break;
 						}
 					}
 					index++;

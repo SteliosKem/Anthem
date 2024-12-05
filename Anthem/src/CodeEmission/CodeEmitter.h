@@ -27,6 +27,9 @@ namespace Anthem {
 		virtual void emit_return() = 0;
 		virtual void emit_file_epilogue() = 0;
 		virtual void emit_unary(ptr<UnaryInstructionNode> unary_operation) = 0;
+		virtual void emit_binary(ptr<BinaryInstructionNode> binary_operation) = 0;
+		virtual void emit_idiv(ptr<DivideInstructionNode> divide) = 0;
+		virtual void emit_cdq() = 0;
 		virtual void emit_stack_access(int offset) = 0;
 		virtual void emit_allocate_stack(ptr<AllocateStackNode> stack_operand) = 0;
 		virtual const std::string& assembly_out() = 0;

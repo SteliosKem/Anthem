@@ -24,7 +24,8 @@ namespace Anthem {
 
 		void generate_instruction(ptr<AIRInstructionNode> instruction_node, ASMInstructionList& list_output);
 		void generate_return(ptr<AIRReturnInstructionNode> return_node, ASMInstructionList& list_output);
-		void generate_unary(ptr<AIRUnaryInstructionNode> return_node, ASMInstructionList& list_output);
+		void generate_unary(ptr<AIRUnaryInstructionNode> unary_node, ASMInstructionList& list_output);
+		void generate_binary(ptr<AIRBinaryInstructionNode> binary_node, ASMInstructionList& list_output);
 
 		// -- Interal Instructions --
 
@@ -42,7 +43,7 @@ namespace Anthem {
 		// -- Subsequent Passes --
 
 		void replace_pseudo_registers();
-		void validate_move_instructions(ptr<ASMProgramNode> program_node);
+		void validate_instructions(ptr<ASMProgramNode> program_node);
 	private:
 		struct FunctionInfo {
 			ASMInstructionList* instructions{ nullptr };

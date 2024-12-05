@@ -45,8 +45,14 @@ namespace Anthem {
 		case Register::EAX:
 			emit_string("%eax", false);
 			break;
+		case Register::EDX:
+			emit_string("%edx", false);
+			break;
 		case Register::R10D:
 			emit_string("%r10d", false);
+			break;
+		case Register::R11D:
+			emit_string("%r11d", false);
 			break;
 		}
 	}
@@ -79,6 +85,39 @@ namespace Anthem {
 			emit_operand(unary_operation->operand);
 			break;
 		}
+		emit_line();
+	}
+
+	void x86_GAS_Emitter::emit_binary(ptr<BinaryInstructionNode> binary_operation) {
+		switch (binary_operation->binary_operation) {
+		case BinaryOperation::ADDITION:
+			emit_string("addl ");
+			emit_operand(binary_operation->operand_a);
+			emit_string(", ", false);
+			emit_operand(binary_operation->operand_b);
+			break;
+		case BinaryOperation::SUBTRACTION:
+			emit_string("subl ");
+			emit_operand(binary_operation->operand_a);
+			emit_string(", ", false);
+			emit_operand(binary_operation->operand_b);
+			break;
+		case BinaryOperation::MULTIPLICATION:
+			emit_string("imull ");
+			emit_operand(binary_operation->operand_a);
+			emit_string(", ", false);
+			emit_operand(binary_operation->operand_b);
+			break;
+		}
+		emit_line();
+	}
+	void x86_GAS_Emitter::emit_idiv(ptr<DivideInstructionNode> divide) {
+		emit_string("idivl ");
+		emit_operand(divide->operand);
+		emit_line();
+	}
+	void x86_GAS_Emitter::emit_cdq() {
+		emit_string("cdq");
 		emit_line();
 	}
 

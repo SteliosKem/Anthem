@@ -12,7 +12,9 @@ namespace Anthem {
 
 	enum class Register {
 		EAX,
+		EDX,
 		R10D,
+		R11D
 	};
 
 	enum class ASMNodeType {
@@ -35,6 +37,9 @@ namespace Anthem {
 		RETURN,
 		MOVE,
 		UNARY,
+		BINARY,
+		DIVIDE,
+		SIGN_EXTEND,
 		ALLOCATE_STACK,
 	};
 
@@ -74,7 +79,7 @@ namespace Anthem {
 		ASMDeclarationList declarations;
 	};
 
-	// Declaration Nodes
+	// -- Declaration Nodes --
 
 	class ASMFunctionNode : public ASMDeclarationNode {
 	public:
@@ -88,7 +93,7 @@ namespace Anthem {
 		ASMInstructionList instructions;
 	};
 
-	// Operand Nodes
+	// -- Operand Nodes --
 
 	class IntegerOperandNode : public ASMOperandNode {
 	public:
@@ -109,35 +114,6 @@ namespace Anthem {
 	};
 	// Macro to simplify setting a register as an operand
 #define REGISTER(x) std::make_shared<RegisterOperandNode>(Register::x)
-
-	// Instruction Nodes
-
-	class ReturnInstructionNode : public ASMInstructionNode {
-	public:
-		ASM_NODE_TYPE(RETURN)
-	};
-
-	class MoveInstructionNode : public ASMInstructionNode {
-	public:
-		MoveInstructionNode(ptr<ASMOperandNode> source, ptr<ASMOperandNode> destination)
-			: source{ source }, destination{ destination } {}
-
-		ASM_NODE_TYPE(MOVE)
-	public:
-		ptr<ASMOperandNode> source;
-		ptr<ASMOperandNode> destination;
-	};
-
-	class UnaryInstructionNode : public ASMInstructionNode {
-	public:
-		UnaryInstructionNode(UnaryOperation unary_operation, ptr<ASMOperandNode> operand)
-			: unary_operation{ unary_operation }, operand{ operand } {}
-
-		ASM_NODE_TYPE(UNARY)
-	public:
-		UnaryOperation unary_operation;
-		ptr<ASMOperandNode> operand;
-	};
 
 	class AllocateStackNode : public ASMInstructionNode {
 	public:
@@ -166,5 +142,61 @@ namespace Anthem {
 	public:
 		Name name;
 		int stack_offset{ 0 };
+	};
+
+	// -- Instruction Nodes --
+
+	class ReturnInstructionNode : public ASMInstructionNode {
+	public:
+		ASM_NODE_TYPE(RETURN)
+	};
+
+	class MoveInstructionNode : public ASMInstructionNode {
+	public:
+		MoveInstructionNode(ptr<ASMOperandNode> source, ptr<ASMOperandNode> destination)
+			: source{ source }, destination{ destination } {}
+
+		ASM_NODE_TYPE(MOVE)
+	public:
+		ptr<ASMOperandNode> source;
+		ptr<ASMOperandNode> destination;
+	};
+
+	class UnaryInstructionNode : public ASMInstructionNode {
+	public:
+		UnaryInstructionNode(UnaryOperation unary_operation, ptr<ASMOperandNode> operand)
+			: unary_operation{ unary_operation }, operand{ operand } {}
+
+		ASM_NODE_TYPE(UNARY)
+	public:
+		UnaryOperation unary_operation;
+		ptr<ASMOperandNode> operand;
+	};
+
+	class BinaryInstructionNode : public ASMInstructionNode {
+	public:
+		BinaryInstructionNode(BinaryOperation binary_operation, ptr<ASMOperandNode> operand_a, ptr<ASMOperandNode> operand_b)
+			: binary_operation{ binary_operation }, operand_a{ operand_a }, operand_b{ operand_b } {}
+
+		ASM_NODE_TYPE(BINARY)
+	public:
+		BinaryOperation binary_operation;
+		ptr<ASMOperandNode> operand_a;
+		ptr<ASMOperandNode> operand_b;
+	};
+
+	class DivideInstructionNode : public ASMInstructionNode {
+	public:
+		DivideInstructionNode() = default;
+		DivideInstructionNode(ptr<ASMOperandNode> operand) : operand{ operand } {}
+
+		ASM_NODE_TYPE(DIVIDE)
+	public:
+		ptr<ASMOperandNode> operand;
+	};
+
+	class SignExtendInstructionNode : public ASMInstructionNode {
+	public:
+		ASM_NODE_TYPE(SIGN_EXTEND)
 	};
 }

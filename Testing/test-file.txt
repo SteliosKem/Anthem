@@ -4,4 +4,4 @@
 */
 
 fn main() // Main Function
-	return 2 - 1 * 8 + 5;
+	return 5 * (4 + 2) % 3;

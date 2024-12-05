@@ -18,6 +18,9 @@ namespace Anthem {
 		virtual void emit_unary(ptr<UnaryInstructionNode> unary_operation) override;
 		virtual void emit_stack_access(int offset) override;
 		virtual void emit_allocate_stack(ptr<AllocateStackNode> allocate_stack) override;
+		virtual void emit_binary(ptr<BinaryInstructionNode> binary_operation) override;
+		virtual void emit_idiv(ptr<DivideInstructionNode> divide) override;
+		virtual void emit_cdq() override;
 
 		virtual const std::string& assembly_out() override;
 

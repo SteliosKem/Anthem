@@ -138,6 +138,7 @@ namespace Anthem {
 		case '^':	advance(); return Token{ CAP, "^", position };
 		case '&':	advance(); return Token{ AMPERSAND, "&", position };
 		case '~':	advance(); return Token{ TILDE, "~", position };
+		case '%':	advance(); return Token{ PERCENT, "%", position };
 		// Check for double character tokens
 		case '+':	to_return = match('=') ? Token{ PLUS_EQUAL, "+=", next_position } : Token{ PLUS, "+", position }; advance(); return to_return;
 		case '-':	to_return = match('=') ? Token{ MINUS_EQUAL, "-=", next_position } : Token{ MINUS, "-", position }; advance(); return to_return;
