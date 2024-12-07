@@ -81,7 +81,7 @@ namespace Anthem {
 			return;
 		case AIRNodeType::SET: {
 			auto set = std::static_pointer_cast<AIRSetInstructionNode>(instruction_node);
-			list_output.push_back(move_instruction(resolve_value(set->value), resolve_value(set->variable)));
+			list_output.push_back(mov(resolve_value(set->value), resolve_value(set->variable)));
 			return;
 		}
 		default:
@@ -92,14 +92,16 @@ namespace Anthem {
 	void CodeGenerator::generate_unary(ptr<AIRUnaryInstructionNode> unary_node, ASMInstructionList& list_output) {
 		auto destination = resolve_value(unary_node->destination);
 		auto source = resolve_value(unary_node->source);
+
 		if (unary_node->operation != UnaryOperation::NOT) {
-			list_output.push_back(move_instruction(source, destination));
+			list_output.push_back(mov(source, destination));
 			list_output.push_back(std::make_shared<UnaryInstructionNode>(unary_node->operation, destination));
 			return;
 		}
-		list_output.push_back(std::make_shared<CompareInstructionNode>(std::make_shared<IntegerOperandNode>(0), source));
-		list_output.push_back(move_instruction(std::make_shared<IntegerOperandNode>(0), destination));
-		list_output.push_back(std::make_shared<SetConditionalNode>(BinaryOperation::EQUAL, destination));
+
+		list_output.push_back(cmp(integer(0), source));
+		list_output.push_back(mov(integer(0), destination));
+		list_output.push_back(set(BinaryOperation::EQUAL, destination));
 	}
 
 	void CodeGenerator::handle_complex_binary(ptr<AIRBinaryInstructionNode> binary_node, ASMInstructionList& list_output) {
@@ -107,8 +109,8 @@ namespace Anthem {
 		auto source_a = resolve_value(binary_node->source_a);
 		auto source_b = resolve_value(binary_node->source_b);
 
-		list_output.push_back(std::make_shared<CompareInstructionNode>(source_b, source_a));
-		list_output.push_back(move_instruction(std::make_shared<IntegerOperandNode>(0), destination));
+		list_output.push_back(cmp(source_b, source_a));
+		list_output.push_back(mov(integer(0), destination));
 
 		switch (binary_node->operation)
 		{
@@ -147,28 +149,28 @@ namespace Anthem {
 		auto source_b = resolve_value(binary_node->source_b);
 
 		if (binary_node->operation == BinaryOperation::DIVISION) {
-			list_output.push_back(move_instruction(source_a, REGISTER(EAX)));
-			list_output.push_back(std::make_shared<SignExtendInstructionNode>());
-			list_output.push_back(std::make_shared<DivideInstructionNode>(source_b));
-			list_output.push_back(move_instruction(REGISTER(EAX), destination));
+			list_output.push_back(mov(source_a, REGISTER(EAX)));
+			list_output.push_back(sign_extend());
+			list_output.push_back(div(source_b));
+			list_output.push_back(mov(REGISTER(EAX), destination));
 			return;
 		}
 		if (binary_node->operation == BinaryOperation::REMAINDER) {
-			list_output.push_back(move_instruction(source_a, REGISTER(EAX)));
-			list_output.push_back(std::make_shared<SignExtendInstructionNode>());
-			list_output.push_back(std::make_shared<DivideInstructionNode>(source_b));
-			list_output.push_back(move_instruction(REGISTER(EDX), destination));
+			list_output.push_back(mov(source_a, REGISTER(EAX)));
+			list_output.push_back(sign_extend());
+			list_output.push_back(div(source_b));
+			list_output.push_back(mov(REGISTER(EDX), destination));
 			return;
 		}
-		list_output.push_back(move_instruction(source_a, destination));
+		list_output.push_back(mov(source_a, destination));
 		list_output.push_back(std::make_shared<BinaryInstructionNode>(binary_node->operation, source_b, destination));
 	}
 
 	void CodeGenerator::generate_return(ptr<AIRReturnInstructionNode> return_node, ASMInstructionList& list_output) {
 		// Move the result of the return expression to EAX register
-		list_output.push_back(move_instruction(resolve_value(return_node->value), REGISTER(EAX)));
+		list_output.push_back(mov(resolve_value(return_node->value), REGISTER(EAX)));
 		// Return
-		list_output.push_back(return_instruction());
+		list_output.push_back(ret());
 	}
 
 	ptr<ASMOperandNode> CodeGenerator::resolve_value(ptr<AIRValueNode> value) {
@@ -192,22 +194,32 @@ namespace Anthem {
 		return pseudo;
 	}
 
-	ptr<ASMOperandNode> CodeGenerator::resolve_expression(ptr<ExpressionNode> expression) {
-		switch (expression->get_type())
-		{
-		case NodeType::INT_LITERAL:
-			return std::make_shared<IntegerOperandNode>(std::static_pointer_cast<IntegerLiteralNode>(expression)->integer);
-		default:
-			break;
-		}
-	}
-
-	ptr<MoveInstructionNode> CodeGenerator::move_instruction(ptr<ASMOperandNode> source, ptr<ASMOperandNode> destination) {
+	ptr<MoveInstructionNode> CodeGenerator::mov(ptr<ASMOperandNode> source, ptr<ASMOperandNode> destination) {
 		return std::make_shared<MoveInstructionNode>(source, destination);
 	}
 
-	ptr<ReturnInstructionNode> CodeGenerator::return_instruction() {
+	ptr<ReturnInstructionNode> CodeGenerator::ret() {
 		return std::make_shared<ReturnInstructionNode>();
+	}
+
+	ptr<CompareInstructionNode> CodeGenerator::cmp(ptr<ASMOperandNode> source, ptr<ASMOperandNode> destination) {
+		return std::make_shared<CompareInstructionNode>(source, destination);
+	}
+
+	ptr<SetConditionalNode> CodeGenerator::set(BinaryOperation operation, ptr<ASMOperandNode> destination) {
+		return std::make_shared<SetConditionalNode>(operation, destination);
+	}
+
+	ptr<IntegerOperandNode> CodeGenerator::integer(int integer) {
+		return std::make_shared<IntegerOperandNode>(integer);
+	}
+
+	ptr<SignExtendInstructionNode> CodeGenerator::sign_extend() {
+		return std::make_shared<SignExtendInstructionNode>();
+	}
+
+	ptr<DivideInstructionNode> CodeGenerator::div(ptr<ASMOperandNode> operand) {
+		return std::make_shared<DivideInstructionNode>(operand);
 	}
 
 	void CodeGenerator::generate_jump(ptr<AIRJumpInstructionNode> jump_node, ASMInstructionList& list_output) {

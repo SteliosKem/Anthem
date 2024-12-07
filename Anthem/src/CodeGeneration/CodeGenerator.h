@@ -32,15 +32,17 @@ namespace Anthem {
 		void generate_jump_if_not_zero(ptr<AIRJumpIfNotZeroInstructionNode> jump_node, ASMInstructionList& list_output);
 		void generate_label(ptr<AIRLabelNode> label_node, ASMInstructionList& list_output);
 
-		// -- Interal Instructions --
+		// -- Simple Instruction Generation -- (Create a Shared Ptr)
 
-		ptr<MoveInstructionNode> move_instruction(ptr<ASMOperandNode> source, ptr<ASMOperandNode> destination);
-		ptr<ReturnInstructionNode> return_instruction();
-
+		ptr<MoveInstructionNode> mov(ptr<ASMOperandNode> source, ptr<ASMOperandNode> destination);
+		ptr<ReturnInstructionNode> ret();
+		ptr<CompareInstructionNode> cmp(ptr<ASMOperandNode> source, ptr<ASMOperandNode> destination);
+		ptr<SetConditionalNode> set(BinaryOperation operation, ptr<ASMOperandNode> destination);
+		ptr<IntegerOperandNode> integer(int integer);
+		ptr<SignExtendInstructionNode> sign_extend();
+		ptr<DivideInstructionNode> div(ptr<ASMOperandNode> operand);
 
 		// -- Operand Resolution and Instruction Generation --
-
-		ptr<ASMOperandNode> resolve_expression(ptr<ExpressionNode> expression);
 		ptr<ASMOperandNode> resolve_value(ptr<AIRValueNode> expression);
 
 		ptr<PseudoOperandNode> make_pseudo_register(ptr<AIRVariableValueNode> variable);
