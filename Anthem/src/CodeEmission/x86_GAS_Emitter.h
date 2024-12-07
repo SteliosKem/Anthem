@@ -11,7 +11,7 @@ namespace Anthem {
 		virtual void emit_function_prologue() override;
 		virtual void emit_function_epilogue() override;
 		virtual void emit_move(ptr<MoveInstructionNode> move_instruction) override;
-		virtual void emit_register(Register register_op) override;
+		virtual void emit_register(Register register_op, Size size = Size::DWORD) override;
 		virtual void emit_integer(int integer) override;
 		virtual void emit_return() override;
 		virtual void emit_file_epilogue() override;
@@ -20,6 +20,10 @@ namespace Anthem {
 		virtual void emit_allocate_stack(ptr<AllocateStackNode> allocate_stack) override;
 		virtual void emit_binary(ptr<BinaryInstructionNode> binary_operation) override;
 		virtual void emit_idiv(ptr<DivideInstructionNode> divide) override;
+		virtual void emit_compare(ptr<CompareInstructionNode> compare_operation) override;
+		virtual void emit_jump(ptr<JumpInstructionNode> jump) override;
+		virtual void emit_jump_conditional(ptr<JumpConditionalNode> conditional_jump) override;
+		virtual void emit_set_conditional(ptr<SetConditionalNode> set_conditional) override;
 		virtual void emit_cdq() override;
 
 		virtual const std::string& assembly_out() override;

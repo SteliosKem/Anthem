@@ -1,6 +1,22 @@
 #include "CodeGenerator.h"
 
 namespace Anthem {
+	// Util
+	bool is_complex_binary(BinaryOperation operation) {
+		switch (operation)
+		{
+		case BinaryOperation::GREATER:
+		case BinaryOperation::LESS:
+		case BinaryOperation::GREATER_EQUAL:
+		case BinaryOperation::LESS_EQUAL:
+		case BinaryOperation::EQUAL:
+		case BinaryOperation::NOT_EQUAL:
+			return true;
+		default:
+			return false;
+		}
+	}
+
 	CodeGenerator::CodeGenerator(ErrorHandler* error_handler) : m_error_handler{ error_handler } {}
 
 	ptr<ASMProgramNode> CodeGenerator::generate(ptr<AIRProgramNode> program) {
@@ -51,6 +67,23 @@ namespace Anthem {
 		case AIRNodeType::BINARY_OPERATION:
 			generate_binary(std::static_pointer_cast<AIRBinaryInstructionNode>(instruction_node), list_output);
 			return;
+		case AIRNodeType::JUMP:
+			generate_jump(std::static_pointer_cast<AIRJumpInstructionNode>(instruction_node), list_output);
+			return;
+		case AIRNodeType::JUMP_IF_NOT_ZERO:
+			generate_jump_if_not_zero(std::static_pointer_cast<AIRJumpIfNotZeroInstructionNode>(instruction_node), list_output);
+			return;
+		case AIRNodeType::JUMP_IF_ZERO:
+			generate_jump_if_zero(std::static_pointer_cast<AIRJumpIfZeroInstructionNode>(instruction_node), list_output);
+			return;
+		case AIRNodeType::LABEL:
+			generate_label(std::static_pointer_cast<AIRLabelNode>(instruction_node), list_output);
+			return;
+		case AIRNodeType::SET: {
+			auto set = std::static_pointer_cast<AIRSetInstructionNode>(instruction_node);
+			list_output.push_back(move_instruction(resolve_value(set->value), resolve_value(set->variable)));
+			return;
+		}
 		default:
 			return;
 		}
@@ -62,10 +95,50 @@ namespace Anthem {
 		list_output.push_back(std::make_shared<UnaryInstructionNode>(unary_node->operation, destination));
 	}
 
-	void CodeGenerator::generate_binary(ptr<AIRBinaryInstructionNode> binary_node, ASMInstructionList& list_output) {
+	void CodeGenerator::handle_complex_binary(ptr<AIRBinaryInstructionNode> binary_node, ASMInstructionList& list_output) {
 		auto destination = resolve_value(binary_node->destination);
 		auto source_a = resolve_value(binary_node->source_a);
 		auto source_b = resolve_value(binary_node->source_b);
+
+		list_output.push_back(std::make_shared<CompareInstructionNode>(source_b, source_a));
+		list_output.push_back(move_instruction(std::make_shared<IntegerOperandNode>(0), destination));
+
+		switch (binary_node->operation)
+		{
+		case BinaryOperation::GREATER:
+			list_output.push_back(std::make_shared<SetConditionalNode>(BinaryOperation::GREATER, destination));
+			break;
+		case BinaryOperation::LESS:
+			list_output.push_back(std::make_shared<SetConditionalNode>(BinaryOperation::LESS, destination));
+			break;
+		case BinaryOperation::GREATER_EQUAL:
+			list_output.push_back(std::make_shared<SetConditionalNode>(BinaryOperation::GREATER_EQUAL, destination));
+			break;
+		case BinaryOperation::LESS_EQUAL:
+			list_output.push_back(std::make_shared<SetConditionalNode>(BinaryOperation::LESS_EQUAL, destination));
+			break;
+		case BinaryOperation::EQUAL:
+			list_output.push_back(std::make_shared<SetConditionalNode>(BinaryOperation::EQUAL, destination));
+			break;
+		case BinaryOperation::NOT_EQUAL:
+			list_output.push_back(std::make_shared<SetConditionalNode>(BinaryOperation::NOT_EQUAL, destination));
+			break;
+		default:
+			break;
+		}
+	}
+
+	void CodeGenerator::generate_binary(ptr<AIRBinaryInstructionNode> binary_node, ASMInstructionList& list_output) {
+		// Handle logical and relational operations
+		if (is_complex_binary(binary_node->operation)) {
+			handle_complex_binary(binary_node, list_output);
+			return;
+		}
+
+		auto destination = resolve_value(binary_node->destination);
+		auto source_a = resolve_value(binary_node->source_a);
+		auto source_b = resolve_value(binary_node->source_b);
+
 		if (binary_node->operation == BinaryOperation::DIVISION) {
 			list_output.push_back(move_instruction(source_a, REGISTER(EAX)));
 			list_output.push_back(std::make_shared<SignExtendInstructionNode>());
@@ -130,6 +203,24 @@ namespace Anthem {
 		return std::make_shared<ReturnInstructionNode>();
 	}
 
+	void CodeGenerator::generate_jump(ptr<AIRJumpInstructionNode> jump_node, ASMInstructionList& list_output) {
+		list_output.push_back(std::make_shared<JumpInstructionNode>(jump_node->label));
+	}
+
+	void CodeGenerator::generate_jump_if_zero(ptr<AIRJumpIfZeroInstructionNode> jump_node, ASMInstructionList& list_output) {
+		list_output.push_back(std::make_shared<CompareInstructionNode>(std::make_shared<IntegerOperandNode>(0), resolve_value(jump_node->condition)));
+		list_output.push_back(std::make_shared<JumpConditionalNode>(BinaryOperation::EQUAL, jump_node->label));
+	}
+
+	void CodeGenerator::generate_jump_if_not_zero(ptr<AIRJumpIfNotZeroInstructionNode> jump_node, ASMInstructionList& list_output) {
+		list_output.push_back(std::make_shared<CompareInstructionNode>(std::make_shared<IntegerOperandNode>(0), resolve_value(jump_node->condition)));
+		list_output.push_back(std::make_shared<JumpConditionalNode>(BinaryOperation::NOT_EQUAL, jump_node->label));
+	}
+
+	void CodeGenerator::generate_label(ptr<AIRLabelNode> label_node, ASMInstructionList& list_output) {
+		list_output.push_back(std::make_shared<ASMLabelNode>(label_node->label));
+	}
+
 	void CodeGenerator::replace_pseudo_registers() {
 		for (auto& function : m_functions) {
 			// Allocate Stack Size 4 times the pseudo registers the function has (each one is 4 bytes)
@@ -164,6 +255,27 @@ namespace Anthem {
 								auto new_move_instruction = std::make_shared<MoveInstructionNode>(REGISTER(R10D), destination);
 								auto begin = function->instructions.begin();
 								function->instructions.insert(std::next(begin, index + 1), new_move_instruction);
+							}
+							break;
+						}
+						case ASMNodeType::COMPARE: {
+							auto cmp_instruction = std::static_pointer_cast<CompareInstructionNode>(instruction);
+							// If both operands are stack memory addresses, move value from first address to a scratch register
+							// and then move the value from the scratch register to the other memory address
+							if (cmp_instruction->operand_b->get_type() == ASMNodeType::INTEGER) {
+								auto destination = cmp_instruction->operand_b;
+								cmp_instruction->operand_b = REGISTER(R11D);
+								auto new_move_instruction = std::make_shared<MoveInstructionNode>(destination, REGISTER(R11D));
+								auto begin = function->instructions.begin();
+								function->instructions.insert(std::next(begin, index), new_move_instruction);
+							}
+							if (cmp_instruction->operand_a->get_type() == ASMNodeType::PSEUDO_OPERAND
+								&& cmp_instruction->operand_b->get_type() == ASMNodeType::PSEUDO_OPERAND) {
+								auto source = cmp_instruction->operand_a;
+								cmp_instruction->operand_a = REGISTER(R10D);
+								auto new_move_instruction = std::make_shared<MoveInstructionNode>(source, REGISTER(R10D));
+								auto begin = function->instructions.begin();
+								function->instructions.insert(std::next(begin, index), new_move_instruction);
 							}
 							break;
 						}

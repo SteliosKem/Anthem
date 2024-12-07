@@ -33,11 +33,11 @@ namespace Anthem {
 		}
 	}
 
-	void CodeEmitter::emit_operand(ptr<ASMOperandNode> operand) {
+	void CodeEmitter::emit_operand(ptr<ASMOperandNode> operand, Size size) {
 		switch (operand->get_type())
 		{
 		case ASMNodeType::REGISTER:
-			emit_register(std::static_pointer_cast<RegisterOperandNode>(operand)->register_op);
+			emit_register(std::static_pointer_cast<RegisterOperandNode>(operand)->register_op, size);
 			return;
 		case ASMNodeType::INTEGER:
 			emit_integer(std::static_pointer_cast<IntegerOperandNode>(operand)->integer);
@@ -72,6 +72,21 @@ namespace Anthem {
 			break;
 		case ASMNodeType::DIVIDE:
 			emit_idiv(std::static_pointer_cast<DivideInstructionNode>(instruction));
+			break;
+		case ASMNodeType::JUMP:
+			emit_jump(std::static_pointer_cast<JumpInstructionNode>(instruction));
+			break;
+		case ASMNodeType::JUMP_CONDITIONAL:
+			emit_jump_conditional(std::static_pointer_cast<JumpConditionalNode>(instruction));
+			break;
+		case ASMNodeType::SET_CONDITIONAL:
+			emit_set_conditional(std::static_pointer_cast<SetConditionalNode>(instruction));
+			break;
+		case ASMNodeType::COMPARE:
+			emit_compare(std::static_pointer_cast<CompareInstructionNode>(instruction));
+			break;
+		case ASMNodeType::LABEL:
+			emit_label(".L" + std::static_pointer_cast<ASMLabelNode>(instruction)->label);
 			break;
 		case ASMNodeType::SIGN_EXTEND:
 			emit_cdq();

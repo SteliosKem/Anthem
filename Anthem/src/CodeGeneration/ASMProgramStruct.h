@@ -22,6 +22,7 @@ namespace Anthem {
 		OPERAND,
 		PROGRAM,
 		DECLARATION,
+		LABEL,
 
 		FUNCTION,
 
@@ -41,6 +42,10 @@ namespace Anthem {
 		DIVIDE,
 		SIGN_EXTEND,
 		ALLOCATE_STACK,
+		JUMP,
+		JUMP_CONDITIONAL,
+		SET_CONDITIONAL,
+		COMPARE,
 	};
 
 	// General Nodes
@@ -198,5 +203,59 @@ namespace Anthem {
 	class SignExtendInstructionNode : public ASMInstructionNode {
 	public:
 		ASM_NODE_TYPE(SIGN_EXTEND)
+	};
+
+	class CompareInstructionNode : public ASMInstructionNode {
+	public:
+		CompareInstructionNode() = default;
+		CompareInstructionNode(ptr<ASMOperandNode> operand_a, ptr<ASMOperandNode> operand_b)
+			: operand_a{ operand_a }, operand_b{ operand_b } {}
+
+		ASM_NODE_TYPE(COMPARE)
+	public:
+		ptr<ASMOperandNode> operand_a;
+		ptr<ASMOperandNode> operand_b;
+	};
+
+	class JumpInstructionNode : public ASMInstructionNode {
+	public:
+		JumpInstructionNode() = default;
+		JumpInstructionNode(const Name& label) : label{ label } {}
+
+		ASM_NODE_TYPE(JUMP)
+	public:
+		Name label;
+	};
+
+	class JumpConditionalNode : public ASMInstructionNode {
+	public:
+		JumpConditionalNode() = default;
+		JumpConditionalNode(BinaryOperation condition, const Name& label) : label{ label }, condition{ condition } {}
+
+		ASM_NODE_TYPE(JUMP_CONDITIONAL)
+	public:
+		Name label;
+		BinaryOperation condition;
+	};
+
+	class SetConditionalNode : public ASMInstructionNode {
+	public:
+		SetConditionalNode() = default;
+		SetConditionalNode(BinaryOperation condition, ptr<ASMOperandNode> operand) : condition{ condition }, operand{ operand } {}
+
+		ASM_NODE_TYPE(SET_CONDITIONAL)
+	public:
+		BinaryOperation condition;
+		ptr<ASMOperandNode> operand;
+	};
+
+	class ASMLabelNode : public ASMInstructionNode {
+	public:
+		ASMLabelNode() = default;
+		ASMLabelNode(const Name& label) : label{ label } {}
+
+		ASM_NODE_TYPE(LABEL)
+	public:
+		Name label;
 	};
 }

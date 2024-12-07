@@ -1,6 +1,33 @@
 #include "x86_GAS_Emitter.h"
 
 namespace Anthem {
+	// Utility
+	std::string condition_code(BinaryOperation condition) {
+		switch (condition)
+		{
+		case BinaryOperation::EQUAL:
+			return "e";
+			break;
+		case BinaryOperation::NOT_EQUAL:
+			return "ne";
+			break;
+		case BinaryOperation::GREATER:
+			return "g";
+			break;
+		case BinaryOperation::GREATER_EQUAL:
+			return "ge";
+			break;
+		case BinaryOperation::LESS:
+			return "l";
+			break;
+		case BinaryOperation::LESS_EQUAL:
+			return "le";
+			break;
+		default:
+			return "";
+		}
+	}
+
 	void x86_GAS_Emitter::emit_string(const std::string& str, bool idented) {
 		if (idented)
 			m_assembly_output += '\t';
@@ -40,20 +67,89 @@ namespace Anthem {
 		emit_line();
 	}
 
-	void x86_GAS_Emitter::emit_register(Register register_op) {
+	void x86_GAS_Emitter::emit_register(Register register_op, Size size) {
+		
 		switch (register_op) {
-		case Register::EAX:
-			emit_string("%eax", false);
-			break;
-		case Register::EDX:
-			emit_string("%edx", false);
-			break;
-		case Register::R10D:
-			emit_string("%r10d", false);
-			break;
-		case Register::R11D:
-			emit_string("%r11d", false);
-			break;
+			case Register::EAX: {
+				switch (size)
+				{
+				case Anthem::Size::BYTE:
+					emit_string("%al", false);
+					break;
+				case Anthem::Size::WORD:
+					emit_string("%ah", false);
+					break;
+				case Anthem::Size::DWORD:
+					emit_string("%eax", false);
+					break;
+				case Anthem::Size::QWORD:
+					emit_string("%rax", false);
+					break;
+				default:
+					break;
+				}
+				break;
+			}
+			case Register::EDX: {
+				switch (size)
+				{
+				case Anthem::Size::BYTE:
+					emit_string("%dl", false);
+					break;
+				case Anthem::Size::WORD:
+					emit_string("%dh", false);
+					break;
+				case Anthem::Size::DWORD:
+					emit_string("%edx", false);
+					break;
+				case Anthem::Size::QWORD:
+					emit_string("%rdx", false);
+					break;
+				default:
+					break;
+				}
+				break;
+			}
+			case Register::R10D: {
+				switch (size)
+				{
+				case Anthem::Size::BYTE:
+					emit_string("%r10b", false);
+					break;
+				case Anthem::Size::WORD:
+					emit_string("%r10w", false);
+					break;
+				case Anthem::Size::DWORD:
+					emit_string("%r10d", false);
+					break;
+				case Anthem::Size::QWORD:
+					emit_string("%r10q", false);
+					break;
+				default:
+					break;
+				}
+				break;
+			}
+			case Register::R11D: {
+				switch (size)
+				{
+				case Anthem::Size::BYTE:
+					emit_string("%r11b", false);
+					break;
+				case Anthem::Size::WORD:
+					emit_string("%r11w", false);
+					break;
+				case Anthem::Size::DWORD:
+					emit_string("%r11d", false);
+					break;
+				case Anthem::Size::QWORD:
+					emit_string("%r11q", false);
+					break;
+				default:
+					break;
+				}
+				break;
+			}
 		}
 	}
 
@@ -116,6 +212,30 @@ namespace Anthem {
 		emit_operand(divide->operand);
 		emit_line();
 	}
+
+	void x86_GAS_Emitter::emit_compare(ptr<CompareInstructionNode> compare_operation) {
+		emit_string("cmpl ");
+		emit_operand(compare_operation->operand_a);
+		emit_string(", ", false);
+		emit_operand(compare_operation->operand_b);
+		emit_line();
+	}
+
+	void x86_GAS_Emitter::emit_jump(ptr<JumpInstructionNode> jump) {
+		emit_string("jmp .L" + jump->label);
+		emit_line();
+	}
+	void x86_GAS_Emitter::emit_jump_conditional(ptr<JumpConditionalNode> conditional_jump) {
+		emit_string("j" + condition_code(conditional_jump->condition) + " .L" + conditional_jump->label);
+		emit_line();
+	}
+
+	void x86_GAS_Emitter::emit_set_conditional(ptr<SetConditionalNode> set_conditional) {
+		emit_string("set" + condition_code(set_conditional->condition) + " ");
+		emit_operand(set_conditional->operand);
+		emit_line();
+	}
+
 	void x86_GAS_Emitter::emit_cdq() {
 		emit_string("cdq");
 		emit_line();

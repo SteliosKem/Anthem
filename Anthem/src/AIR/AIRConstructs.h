@@ -16,9 +16,13 @@ namespace Anthem {
 
 		FUNCTION,
 
-		INSTRUCTION_PACK,
 		UNARY_OPERATION,
 		BINARY_OPERATION,
+		JUMP,
+		JUMP_IF_ZERO,
+		JUMP_IF_NOT_ZERO,
+		SET,
+		LABEL,
 		INTEGER,
 		VARIABLE,
 		RETURN,
@@ -127,6 +131,57 @@ namespace Anthem {
 
 		AIR_NODE_TYPE(RETURN)
 	public:
+		ptr<AIRValueNode> value;
+	};
+
+	class AIRJumpInstructionNode : public AIRInstructionNode {
+	public:
+		AIRJumpInstructionNode(const Name& label) : label{ label } {}
+
+		AIR_NODE_TYPE(JUMP)
+	public:
+		Name label;
+	};
+
+	class AIRJumpIfZeroInstructionNode : public AIRInstructionNode {
+	public:
+		AIRJumpIfZeroInstructionNode(ptr<AIRValueNode> condition, const Name& label)
+			: label{ label }, condition{ condition } {}
+
+		AIR_NODE_TYPE(JUMP_IF_ZERO)
+	public:
+		Name label;
+		ptr<AIRValueNode> condition;
+	};
+
+	class AIRJumpIfNotZeroInstructionNode : public AIRInstructionNode {
+	public:
+		AIRJumpIfNotZeroInstructionNode(ptr<AIRValueNode> condition, const Name& label)
+			: label{ label }, condition{ condition } {}
+
+		AIR_NODE_TYPE(JUMP_IF_NOT_ZERO)
+	public:
+		Name label;
+		ptr<AIRValueNode> condition;
+	};
+
+	class AIRLabelNode : public AIRInstructionNode {
+	public:
+		AIRLabelNode(const Name& label) : label{ label } {}
+
+		AIR_NODE_TYPE(LABEL)
+	public:
+		Name label;
+	};
+
+	class AIRSetInstructionNode : public AIRInstructionNode {
+	public:
+		AIRSetInstructionNode(ptr<AIRVariableValueNode> variable, ptr<AIRValueNode> value)
+			: variable{ variable }, value{ value } {}
+
+		AIR_NODE_TYPE(SET)
+	public:
+		ptr<AIRVariableValueNode> variable;
 		ptr<AIRValueNode> value;
 	};
 }

@@ -2,6 +2,13 @@
 #include "CodeGeneration/CodeGenerator.h"
 
 namespace Anthem {
+	enum class Size {
+		BYTE,
+		WORD,
+		DWORD,
+		QWORD
+	};
+
 	/* Base Class that defines general emitting behaviour.
 	*  Derived classes implement the pure virtual functions, in order to have the ability
 	*  to implement assembly emission for more architectures / syntaxes
@@ -21,13 +28,17 @@ namespace Anthem {
 		virtual void emit_function_epilogue() = 0;
 		virtual void emit_instruction(ptr<ASMInstructionNode> instruction);
 		virtual void emit_move(ptr<MoveInstructionNode> move_instruction) = 0;
-		virtual void emit_operand(ptr<ASMOperandNode> operand);
-		virtual void emit_register(Register register_op) = 0;
+		virtual void emit_operand(ptr<ASMOperandNode> operand, Size size = Size::DWORD);
+		virtual void emit_register(Register register_op, Size size = Size::DWORD) = 0;
 		virtual void emit_integer(int integer) = 0;
 		virtual void emit_return() = 0;
 		virtual void emit_file_epilogue() = 0;
 		virtual void emit_unary(ptr<UnaryInstructionNode> unary_operation) = 0;
 		virtual void emit_binary(ptr<BinaryInstructionNode> binary_operation) = 0;
+		virtual void emit_compare(ptr<CompareInstructionNode> compare_operation) = 0;
+		virtual void emit_jump(ptr<JumpInstructionNode> jump) = 0;
+		virtual void emit_jump_conditional(ptr<JumpConditionalNode> conditional_jump) = 0;
+		virtual void emit_set_conditional(ptr<SetConditionalNode> set_conditional) = 0;
 		virtual void emit_idiv(ptr<DivideInstructionNode> divide) = 0;
 		virtual void emit_cdq() = 0;
 		virtual void emit_stack_access(int offset) = 0;

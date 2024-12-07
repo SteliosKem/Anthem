@@ -26,6 +26,11 @@ namespace Anthem {
 		void generate_return(ptr<AIRReturnInstructionNode> return_node, ASMInstructionList& list_output);
 		void generate_unary(ptr<AIRUnaryInstructionNode> unary_node, ASMInstructionList& list_output);
 		void generate_binary(ptr<AIRBinaryInstructionNode> binary_node, ASMInstructionList& list_output);
+		void handle_complex_binary(ptr<AIRBinaryInstructionNode> binary_node, ASMInstructionList& list_output);
+		void generate_jump(ptr<AIRJumpInstructionNode> jump_node, ASMInstructionList& list_output);
+		void generate_jump_if_zero(ptr<AIRJumpIfZeroInstructionNode> jump_node, ASMInstructionList& list_output);
+		void generate_jump_if_not_zero(ptr<AIRJumpIfNotZeroInstructionNode> jump_node, ASMInstructionList& list_output);
+		void generate_label(ptr<AIRLabelNode> label_node, ASMInstructionList& list_output);
 
 		// -- Interal Instructions --
 
