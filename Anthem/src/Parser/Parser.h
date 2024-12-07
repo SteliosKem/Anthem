@@ -39,15 +39,22 @@ namespace Anthem {
 		
 		ptr<ProgramNode> parse_program();
 
+		// Miscellaneous
+
+		BlockItem parse_block_item();
+
 		// Declaration Parsing
 
 		ptr<DeclarationNode> parse_declaration();
 		ptr<DeclarationNode> parse_function_declaration();
+		ptr<DeclarationNode> parse_variable_declaration();
 
 		// Statement Parsing
 
 		ptr<StatementNode> parse_statement();
 		ptr<ReturnStatementNode> parse_return_statement();
+		ptr<BlockStatementNode> parse_block_statement();
+		ptr<ExprStatementNode> parse_expr_statement();
 
 		// Expression Parsing
 

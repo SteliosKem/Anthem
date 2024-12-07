@@ -2,14 +2,6 @@
 main:
 	pushq %rbp
 	movq %rsp, %rbp
-	subq $4, %rsp
-	movl $1, %r11d
-	cmpl $0, %r11d
-	movl $0, -4(%rbp)
-	sete -4(%rbp)
-	movl -4(%rbp), %eax
-	movq %rbp, %rsp
-	popq %rbp
-	ret
+	subq $0, %rsp
 
 .section .note.GNU-stack,"",@progbits

@@ -31,31 +31,37 @@ namespace Anthem {
 		{
 		case PLUS:
 		case MINUS:
-			return 4;
+			return 5;
 
 		case STAR:
 		case SLASH:
 		case PERCENT:
-			return 5;
+			return 6;
 
 		case LESS:
 		case GREATER:
 		case LESS_EQUAL:
 		case GREATER_EQUAL:
+			return 4;
+
+		case EQUAL_EQUAL:
+		case BANG_EQUAL:
 			return 3;
 
-		case EQUAL:
-		case BANG_EQUAL:
-			return 2;
-
 		case AND:
-			return 1;
+			return 2;
 		case OR:
+			return 1;
+		case EQUAL:
 			return 0;
 		default:
 			break;
 		}
 	}
+
+	// Boilerplate Consume Semicolon on every Statement
+#define CONSUME_SEMICOLON() if(!consume(SEMICOLON, "Expected ';'")) return nullptr;
+
 
 	Parser::Parser(ErrorHandler* error_handler) : m_error_handler{ error_handler } {}
 
@@ -112,6 +118,49 @@ namespace Anthem {
 				std::cout << ' ';
 				pretty_print(binary_op->right_expression);
 				std::cout << ')';
+				break;
+			}
+			case NodeType::NAME_ACCESS: {
+				ptr<AccessNode> access = std::static_pointer_cast<AccessNode>(node);
+				std::cout << "Access(" << access->variable_name << ")";
+				break;
+			}
+			case NodeType::EXPR_STATEMENT: {
+				ptr<ExprStatementNode> expression = std::static_pointer_cast<ExprStatementNode>(node);
+				std::cout << padding << "Expression ";
+				pretty_print(expression->expression);
+				std::cout << "\n";
+				break;
+			}
+			case NodeType::VOID_STATEMENT: {
+				std::cout << padding << "Void\n";
+				break;
+			}
+			case NodeType::VARIABLE: {
+				ptr<VariableNode> variable = std::static_pointer_cast<VariableNode>(node);
+				std::cout << padding << "Variable Declaration " << variable->variable_name;
+				if (variable->expression) {
+					pretty_print(variable->expression);
+					std::cout << "\n";
+				}
+				break;
+			}
+			case NodeType::ASSIGNMENT: {
+				ptr<AssignmentNode> assignment = std::static_pointer_cast<AssignmentNode>(node);
+				std::cout << "Assign ";
+				pretty_print(assignment->expression);
+				std::cout << " to ";
+				pretty_print(assignment->lvalue);
+				break;
+			}
+			case NodeType::BLOCK_STATEMENT: {
+				ptr<BlockStatementNode> block = std::static_pointer_cast<BlockStatementNode>(node);
+				for(auto& item : block->items) {
+					if (std::holds_alternative<ptr<StatementNode>>(item))
+						pretty_print(std::get<ptr<StatementNode>>(item), padding);
+					else 
+						pretty_print(std::get<ptr<DeclarationNode>>(item), padding);
+				}
 				break;
 			}
 		default:
@@ -175,6 +224,12 @@ namespace Anthem {
 		return program_node;
 	}
 
+	BlockItem Parser::parse_block_item() {
+		if (is_current(LET))
+			return parse_variable_declaration();
+		return parse_statement();
+	}
+
 	ptr<DeclarationNode> Parser::parse_declaration() {
 		//if (match(FUNCTION)) <-- Will be used when global variable declarations are added
 		if(consume(FUNCTION, "Expected Function Declaration"))
@@ -197,17 +252,39 @@ namespace Anthem {
 		return std::make_shared<FunctionDeclarationNode>(identifier.value, body);
 	}
 
-// Boilerplate Consume Semicolon on every Statement
-#define CONSUME_SEMICOLON() if(!consume(SEMICOLON, "Expected ';'")) return nullptr;
-	
+	ptr<DeclarationNode> Parser::parse_variable_declaration() {
+		advance();
+		Token identifier_token = current_token();
+		consume(IDENTIFIER, "Expected identifier after 'let'");
+		ptr<VariableNode> variable = nullptr;
+		/*
+		* Will be added when more types are implemented
+		consume(COLON, "Expected ':'");
+		*/
+
+		// If there is assignment parse the expression given
+		if (match(EQUAL))
+			variable = std::make_shared<VariableNode>(identifier_token.value, Type::I32, parse_expression());
+		else
+			variable = std::make_shared<VariableNode>(identifier_token.value, Type::I32);
+
+		CONSUME_SEMICOLON();
+
+		return variable;
+	}
+
 	ptr<StatementNode> Parser::parse_statement() {
 		switch (current_token().type)
 		{
 		case RETURN:
 			return parse_return_statement();
-		// Handle only return statements for now
+		case LEFT_BRACE:
+			return parse_block_statement();
+		case SEMICOLON:
+			return std::make_shared<VoidStatementNode>();
+		// If nothing matches, then it probably will be an expression statement
 		default:
-			return nullptr;
+			return parse_expr_statement();
 		}
 	}
 
@@ -221,6 +298,26 @@ namespace Anthem {
 		return std::make_shared<ReturnStatementNode>(expression);
 	}
 
+	ptr<BlockStatementNode> Parser::parse_block_statement() {
+		advance();
+		auto block_statement = std::make_shared<BlockStatementNode>();
+		// Parse the expression inside the return statement
+		while(!is_current(RIGHT_BRACE) && !is_current(SPECIAL_EOF))
+			block_statement->items.push_back(parse_block_item());
+
+		consume(RIGHT_BRACE, "Expected '}'");
+
+		return block_statement;
+	}
+
+	ptr<ExprStatementNode> Parser::parse_expr_statement() {
+		ptr<ExpressionNode> expression = parse_expression();
+
+		CONSUME_SEMICOLON();
+
+		return std::make_shared<ExprStatementNode>(expression);
+	}
+
 	ptr<ExpressionNode> Parser::parse_expression(uint8_t mininum_precedence) {
 		// Parse expression as left side of a binary operation, even if it won't be one
 		ptr<ExpressionNode> left_expression = parse_factor();
@@ -228,8 +325,14 @@ namespace Anthem {
 		while (is_binary_operator(current_token()) && get_precedence(current_token().type) >= mininum_precedence) {
 			operator_token = current_token();
 			advance();
-			ptr<ExpressionNode> right_expression = parse_expression(get_precedence(operator_token.type) + 1);
-			left_expression = std::make_shared<BinaryOperationNode>(operator_token, left_expression, right_expression);
+			if (operator_token.type == EQUAL) {
+				ptr<ExpressionNode> right_expression = parse_expression(get_precedence(operator_token.type));
+				left_expression = std::make_shared<AssignmentNode>(left_expression, right_expression);
+			}
+			else {
+				ptr<ExpressionNode> right_expression = parse_expression(get_precedence(operator_token.type) + 1);
+				left_expression = std::make_shared<BinaryOperationNode>(operator_token, left_expression, right_expression);
+			}
 		}
 		return left_expression;
 	}
@@ -254,6 +357,10 @@ namespace Anthem {
 			ptr<ExpressionNode> expression = parse_expression();
 			consume(RIGHT_PARENTHESIS, "Expected ')'");
 			return expression;
+		}
+		case IDENTIFIER: {
+			advance();
+			return std::make_shared<AccessNode>(token.value);
 		}
 		default:
 			report_error("Expected Expression");

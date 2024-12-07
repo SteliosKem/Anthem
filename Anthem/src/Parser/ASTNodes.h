@@ -1,6 +1,7 @@
 #pragma once
 #include "Utilities/Utilities.h"
 #include "Lexer/Token.h"
+#include <variant>
 
 namespace Anthem {
 // Macro to simplify basic setup for all node classes
@@ -31,7 +32,8 @@ namespace Anthem {
 			GROUP_STATEMENT,
 			RETURN_STATEMENT,
 			EXPR_STATEMENT,
-			VOID_STATEMENT
+			VOID_STATEMENT,
+			BLOCK_STATEMENT
 	};
 
 	// General Nodes
@@ -81,6 +83,18 @@ namespace Anthem {
 		ptr<StatementNode> body;
 	};
 
+	class VariableNode : public DeclarationNode {
+	public:
+		VariableNode(Name variable_name, Type type = Type::I32, ptr<ExpressionNode> expression = nullptr)
+			: variable_name{ variable_name }, expression{ expression }, type{ type } {}
+
+		NODE_TYPE(VARIABLE)
+	public:
+		Name variable_name;
+		ptr<ExpressionNode> expression;
+		Type type;
+	};
+
 	// Expression Nodes
 
 	class UnaryOperationNode : public ExpressionNode {
@@ -113,15 +127,6 @@ namespace Anthem {
 		NODE_TYPE(INT_LITERAL)
 	public:
 		int integer;
-	};
-
-	class VariableNode : public ExpressionNode {
-	public:
-		VariableNode(Name variable_name) : variable_name{ variable_name } {}
-
-		NODE_TYPE(VARIABLE)
-	public:
-		Name variable_name;
 	};
 
 	class AssignmentNode : public ExpressionNode {
@@ -178,5 +183,18 @@ namespace Anthem {
 	class VoidStatementNode : public StatementNode {
 	public:
 		NODE_TYPE(VOID_STATEMENT)
+	};
+
+	using BlockItem = std::variant<ptr<DeclarationNode>, ptr<StatementNode>>;
+	using BlockItems = std::vector<BlockItem>;
+
+	class BlockStatementNode : public StatementNode {
+	public:
+		BlockStatementNode() = default;
+		BlockStatementNode(const BlockItems& items) : items{ items } {}
+
+		NODE_TYPE(BLOCK_STATEMENT)
+	public:
+		BlockItems items;
 	};
 }

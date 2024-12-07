@@ -36,9 +36,11 @@ namespace Anthem {
 			GREATER,
 			LESS,
 
+			// Miscellaneous
 			DOT,
 			COMMA,
 			SEMICOLON,
+			COLON,
 
 			// Assignment
 			EQUAL,

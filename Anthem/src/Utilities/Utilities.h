@@ -7,6 +7,10 @@ namespace Anthem {
 	template<typename T>
 	using ptr = std::shared_ptr<T>;
 
+	enum class Type {
+		I32
+	};
+
 	enum class UnaryOperation {
 		NEGATE,
 		COMPLEMENT,

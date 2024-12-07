@@ -3,5 +3,8 @@
    Still Here
 */
 
-fn main() // Main Function
-	return !1;
+fn main() { // Main Function
+	let a = 2 + 4;
+	a = 7;
+	return a;
+}
