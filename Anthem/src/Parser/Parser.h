@@ -53,7 +53,6 @@ namespace Anthem {
 
 		ptr<ExpressionNode> parse_expression(uint8_t mininum_precedence = 0);
 		ptr<ExpressionNode> parse_factor();
-
 	private:
 		int m_current_token_index{ 0 };
 		ErrorHandler* m_error_handler{ nullptr };

@@ -23,10 +23,15 @@ namespace Anthem {
 			UNARY_OPERATION,
 			BINARY_OPERATION,
 			INT_LITERAL,
+			ASSIGNMENT,
+			VARIABLE,
+			NAME_ACCESS,
 
 		// Statements
 			GROUP_STATEMENT,
 			RETURN_STATEMENT,
+			EXPR_STATEMENT,
+			VOID_STATEMENT
 	};
 
 	// General Nodes
@@ -110,6 +115,35 @@ namespace Anthem {
 		int integer;
 	};
 
+	class VariableNode : public ExpressionNode {
+	public:
+		VariableNode(Name variable_name) : variable_name{ variable_name } {}
+
+		NODE_TYPE(VARIABLE)
+	public:
+		Name variable_name;
+	};
+
+	class AssignmentNode : public ExpressionNode {
+	public:
+		AssignmentNode(ptr<ExpressionNode> lvalue, ptr<ExpressionNode> expression) 
+			: lvalue{ lvalue }, expression{ expression } {}
+
+		NODE_TYPE(ASSIGNMENT)
+	public:
+		ptr<ExpressionNode> lvalue;
+		ptr<ExpressionNode> expression;
+	};
+
+	class AccessNode : public ExpressionNode {
+	public:
+		AccessNode(Name variable_name) : variable_name{ variable_name } {}
+
+		NODE_TYPE(NAME_ACCESS)
+	public:
+		Name variable_name;
+	};
+
 	// Statement Nodes
 
 	using GroupStatement = std::vector<ptr<StatementNode>>;
@@ -130,5 +164,19 @@ namespace Anthem {
 		NODE_TYPE(RETURN_STATEMENT)
 	public:
 		ptr<ExpressionNode> expression;
+	};
+
+	class ExprStatementNode : public StatementNode {
+	public:
+		ExprStatementNode(ptr<ExpressionNode> expr) : expression{ expr } {}
+
+		NODE_TYPE(EXPR_STATEMENT)
+	public:
+		ptr<ExpressionNode> expression;
+	};
+
+	class VoidStatementNode : public StatementNode {
+	public:
+		NODE_TYPE(VOID_STATEMENT)
 	};
 }
