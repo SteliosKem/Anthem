@@ -91,8 +91,15 @@ namespace Anthem {
 
 	void CodeGenerator::generate_unary(ptr<AIRUnaryInstructionNode> unary_node, ASMInstructionList& list_output) {
 		auto destination = resolve_value(unary_node->destination);
-		list_output.push_back(move_instruction(resolve_value(unary_node->source), destination));
-		list_output.push_back(std::make_shared<UnaryInstructionNode>(unary_node->operation, destination));
+		auto source = resolve_value(unary_node->source);
+		if (unary_node->operation != UnaryOperation::NOT) {
+			list_output.push_back(move_instruction(source, destination));
+			list_output.push_back(std::make_shared<UnaryInstructionNode>(unary_node->operation, destination));
+			return;
+		}
+		list_output.push_back(std::make_shared<CompareInstructionNode>(std::make_shared<IntegerOperandNode>(0), source));
+		list_output.push_back(move_instruction(std::make_shared<IntegerOperandNode>(0), destination));
+		list_output.push_back(std::make_shared<SetConditionalNode>(BinaryOperation::EQUAL, destination));
 	}
 
 	void CodeGenerator::handle_complex_binary(ptr<AIRBinaryInstructionNode> binary_node, ASMInstructionList& list_output) {
