@@ -175,11 +175,23 @@ namespace Anthem {
 		return AIR_program_node;
 	}
 
-	ptr<AIRDeclarationNode> AIRGenerator::generate_declaration(ptr<DeclarationNode> declaration_node) {
+	ptr<AIRDeclarationNode> AIRGenerator::generate_declaration(ptr<DeclarationNode> declaration_node, AIRInstructionList* output_optional) {
 		// Handle any Declaration Case
 		switch (declaration_node->get_type()) {
 		case NodeType::FUNCTION_DECLARATION:
 			return generate_function_declaration(std::static_pointer_cast<FunctionDeclarationNode>(declaration_node));
+		case NodeType::VARIABLE: {
+			if (output_optional) {
+				auto variable = std::static_pointer_cast<VariableNode>(declaration_node);
+				if (variable->expression) {
+					ptr<AIRValueNode> source = resolve_expression(variable->expression, *output_optional);
+					ptr<AIRVariableValueNode> target = make_variable(variable->variable_token.value);
+
+					output_optional->push_back(std::make_shared<AIRSetInstructionNode>(target, source));
+				}
+			}
+			return nullptr;
+		}
 		default:
 			return nullptr;
 		}
@@ -189,13 +201,23 @@ namespace Anthem {
 		ptr<AIRFunctionNode> AIR_function_node = std::make_shared<AIRFunctionNode>();
 		AIR_function_node->name = function_node->name;
 		generate_statement(function_node->body, AIR_function_node->instructions);
+		// Add return 0 instruction in case function doesn't have a return statement
+		AIR_function_node->instructions.push_back(std::make_shared<AIRReturnInstructionNode>(std::make_shared<AIRIntegerValueNode>(0)));
 		return AIR_function_node;
 	}
 
 	void AIRGenerator::generate_statement(ptr<StatementNode> statement_node, AIRInstructionList& output) {
 		switch (statement_node->get_type()) {
-		case NodeType::RETURN_STATEMENT:
+		case NodeType::RETURN_STATEMENT: 
 			generate_return(std::static_pointer_cast<ReturnStatementNode>(statement_node), output);
+			break;
+		case NodeType::BLOCK_STATEMENT:
+			generate_block(std::static_pointer_cast<BlockStatementNode>(statement_node), output);
+			break;
+		case NodeType::VOID_STATEMENT:
+			return;
+		case NodeType::EXPR_STATEMENT:
+			resolve_expression(std::static_pointer_cast<ExprStatementNode>(statement_node)->expression, output);
 		default:
 			return;
 		}
@@ -203,6 +225,15 @@ namespace Anthem {
 
 	void AIRGenerator::generate_return(ptr<ReturnStatementNode> return_statement_node, AIRInstructionList& output) {
 		output.push_back(std::make_shared<AIRReturnInstructionNode>(resolve_expression(return_statement_node->expression, output)));
+	}
+
+	void AIRGenerator::generate_block(ptr<BlockStatementNode> block_statement, AIRInstructionList& output) {
+		for (auto& item : block_statement->items) {
+			if (std::holds_alternative<ptr<StatementNode>>(item))
+				generate_statement(std::get<ptr<StatementNode>>(item), output);
+			else
+				generate_declaration(std::get<ptr<DeclarationNode>>(item), &output);
+		}
 	}
 
 	ptr<AIRValueNode> AIRGenerator::resolve_expression(ptr<ExpressionNode> expression, AIRInstructionList& output) {
@@ -214,6 +245,10 @@ namespace Anthem {
 			return unary_operation(std::static_pointer_cast<UnaryOperationNode>(expression), output);
 		case NodeType::BINARY_OPERATION:
 			return binary_operation(std::static_pointer_cast<BinaryOperationNode>(expression), output);
+		case NodeType::ASSIGNMENT:
+			return assignment(std::static_pointer_cast<AssignmentNode>(expression), output);
+		case NodeType::NAME_ACCESS:
+			return make_variable(std::static_pointer_cast<AccessNode>(expression)->variable_token.value);
 		default:
 			return nullptr;
 		}
@@ -256,6 +291,14 @@ namespace Anthem {
 
 		output.push_back(std::make_shared<AIRBinaryInstructionNode>(operation, source_a, source_b, destination));
 		return destination;
+	}
+
+	ptr<AIRValueNode> AIRGenerator::assignment(ptr<AssignmentNode> assignment, AIRInstructionList& output) {
+		ptr<AIRValueNode> source = resolve_expression(assignment->expression, output);
+		ptr<AIRVariableValueNode> target = std::static_pointer_cast<AIRVariableValueNode>(resolve_expression(assignment->lvalue, output));
+
+		output.push_back(std::make_shared<AIRSetInstructionNode>(target, source));
+		return target;
 	}
 
 	ptr<AIRValueNode> AIRGenerator::logical_binary_operation(ptr<BinaryOperationNode> binary_op, AIRInstructionList& output) {

@@ -18,23 +18,25 @@ namespace Anthem {
 		// Create ASM Program from AST Program Node
 		ptr<AIRProgramNode> generate_program(ptr<ProgramNode> program_node);
 		// Create an ASM Declaration (Function or Global Variable) Node from AST Declaration Node
-		ptr<AIRDeclarationNode> generate_declaration(ptr<DeclarationNode> declaration_node);
+		ptr<AIRDeclarationNode> generate_declaration(ptr<DeclarationNode> declaration_node, AIRInstructionList* output_optional = nullptr);
 
 		// -- Declaration Generation --
 
 		ptr<AIRFunctionNode> generate_function_declaration(ptr<FunctionDeclarationNode> function_node);
-
+		//ptr<AIRValueNode> generate_variable_declaration(ptr<VariableNode> variable_node);
 
 		// -- Statement Generation --
 
 		void generate_statement(ptr<StatementNode> statement_node, AIRInstructionList& output);
 		void generate_return(ptr<ReturnStatementNode> return_node, AIRInstructionList& output);
+		void generate_block(ptr<BlockStatementNode> block_statement, AIRInstructionList& output);
 
 		// -- Expression Resolution and Instruction Generation --
 
 		ptr<AIRValueNode> resolve_expression(ptr<ExpressionNode> expression, AIRInstructionList& output);
 		ptr<AIRValueNode> unary_operation(ptr<UnaryOperationNode> unary_op, AIRInstructionList& output);
 		ptr<AIRValueNode> binary_operation(ptr<BinaryOperationNode> binary_op, AIRInstructionList& output);
+		ptr<AIRValueNode> assignment(ptr<AssignmentNode> binary_op, AIRInstructionList& output);
 
 		ptr<AIRValueNode> logical_binary_operation(ptr<BinaryOperationNode> binary_op, AIRInstructionList& output);
 	private:
