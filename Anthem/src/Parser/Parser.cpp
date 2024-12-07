@@ -122,7 +122,7 @@ namespace Anthem {
 			}
 			case NodeType::NAME_ACCESS: {
 				ptr<AccessNode> access = std::static_pointer_cast<AccessNode>(node);
-				std::cout << "Access(" << access->variable_name << ")";
+				std::cout << "Access(" << access->variable_token.value << ")";
 				break;
 			}
 			case NodeType::EXPR_STATEMENT: {
@@ -138,7 +138,7 @@ namespace Anthem {
 			}
 			case NodeType::VARIABLE: {
 				ptr<VariableNode> variable = std::static_pointer_cast<VariableNode>(node);
-				std::cout << padding << "Variable Declaration " << variable->variable_name;
+				std::cout << padding << "Variable Declaration " << variable->variable_token.value;
 				if (variable->expression) {
 					pretty_print(variable->expression);
 					std::cout << "\n";
@@ -264,9 +264,9 @@ namespace Anthem {
 
 		// If there is assignment parse the expression given
 		if (match(EQUAL))
-			variable = std::make_shared<VariableNode>(identifier_token.value, Type::I32, parse_expression());
+			variable = std::make_shared<VariableNode>(identifier_token, Type::I32, parse_expression());
 		else
-			variable = std::make_shared<VariableNode>(identifier_token.value, Type::I32);
+			variable = std::make_shared<VariableNode>(identifier_token, Type::I32);
 
 		CONSUME_SEMICOLON();
 
@@ -327,7 +327,7 @@ namespace Anthem {
 			advance();
 			if (operator_token.type == EQUAL) {
 				ptr<ExpressionNode> right_expression = parse_expression(get_precedence(operator_token.type));
-				left_expression = std::make_shared<AssignmentNode>(left_expression, right_expression);
+				left_expression = std::make_shared<AssignmentNode>(left_expression, right_expression, operator_token);
 			}
 			else {
 				ptr<ExpressionNode> right_expression = parse_expression(get_precedence(operator_token.type) + 1);
@@ -360,7 +360,7 @@ namespace Anthem {
 		}
 		case IDENTIFIER: {
 			advance();
-			return std::make_shared<AccessNode>(token.value);
+			return std::make_shared<AccessNode>(token);
 		}
 		default:
 			report_error("Expected Expression");

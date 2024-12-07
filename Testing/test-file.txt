@@ -5,6 +5,6 @@
 
 fn main() { // Main Function
 	let a = 2 + 4;
-	a = 7;
+	a = 10;
 	return a;
 }

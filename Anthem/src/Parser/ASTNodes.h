@@ -85,12 +85,12 @@ namespace Anthem {
 
 	class VariableNode : public DeclarationNode {
 	public:
-		VariableNode(Name variable_name, Type type = Type::I32, ptr<ExpressionNode> expression = nullptr)
-			: variable_name{ variable_name }, expression{ expression }, type{ type } {}
+		VariableNode(Token variable_token, Type type = Type::I32, ptr<ExpressionNode> expression = nullptr)
+			: variable_token{ variable_token }, expression{ expression }, type{ type } {}
 
 		NODE_TYPE(VARIABLE)
 	public:
-		Name variable_name;
+		Token variable_token;
 		ptr<ExpressionNode> expression;
 		Type type;
 	};
@@ -110,7 +110,7 @@ namespace Anthem {
 
 	class BinaryOperationNode : public ExpressionNode {
 	public:
-		BinaryOperationNode(Token operator_token, ptr<ExpressionNode> left_expression, ptr<ExpressionNode> right_expression)
+		BinaryOperationNode(const Token& operator_token, ptr<ExpressionNode> left_expression, ptr<ExpressionNode> right_expression)
 			: operator_token{ operator_token }, left_expression{ left_expression }, right_expression{ right_expression } {}
 
 		NODE_TYPE(BINARY_OPERATION)
@@ -131,22 +131,23 @@ namespace Anthem {
 
 	class AssignmentNode : public ExpressionNode {
 	public:
-		AssignmentNode(ptr<ExpressionNode> lvalue, ptr<ExpressionNode> expression) 
-			: lvalue{ lvalue }, expression{ expression } {}
+		AssignmentNode(ptr<ExpressionNode> lvalue, ptr<ExpressionNode> expression, const Token& equals_token) 
+			: lvalue{ lvalue }, expression{ expression }, token{ token } {}
 
 		NODE_TYPE(ASSIGNMENT)
 	public:
 		ptr<ExpressionNode> lvalue;
 		ptr<ExpressionNode> expression;
+		Token token;
 	};
 
 	class AccessNode : public ExpressionNode {
 	public:
-		AccessNode(Name variable_name) : variable_name{ variable_name } {}
+		AccessNode(Token variable_token) : variable_token{ variable_token } {}
 
 		NODE_TYPE(NAME_ACCESS)
 	public:
-		Name variable_name;
+		Token variable_token;
 	};
 
 	// Statement Nodes
