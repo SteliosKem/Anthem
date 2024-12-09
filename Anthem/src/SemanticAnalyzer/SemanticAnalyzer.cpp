@@ -60,6 +60,14 @@ namespace Anthem {
 			analyze_expression(return_statement->expression);
 			break;
 		}
+		case NodeType::IF_STATEMENT: {
+			ptr<IfStatementNode> if_statement = std::static_pointer_cast<IfStatementNode>(statement);
+			analyze_expression(if_statement->condition);
+			analyze_statement(if_statement->body);
+			if (if_statement->else_body)
+				analyze_statement(if_statement->else_body);
+			break;
+		}
 		default:
 			break;
 		}
