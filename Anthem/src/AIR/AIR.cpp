@@ -218,6 +218,10 @@ namespace Anthem {
 			return;
 		case NodeType::EXPR_STATEMENT:
 			resolve_expression(std::static_pointer_cast<ExprStatementNode>(statement_node)->expression, output);
+			break;
+		case NodeType::IF_STATEMENT:
+			generate_if(std::static_pointer_cast<IfStatementNode>(statement_node), output);
+			break;
 		default:
 			return;
 		}
@@ -234,6 +238,34 @@ namespace Anthem {
 			else
 				generate_declaration(std::get<ptr<DeclarationNode>>(item), &output);
 		}
+	}
+
+	void AIRGenerator::generate_if(ptr<IfStatementNode> if_statement, AIRInstructionList& output) {
+		ptr<AIRValueNode> result = resolve_expression(if_statement->condition, output);
+		//ptr<AIRVariableValueNode> result = make_variable(make_temporary_name());
+		//output.push_back(set(result, condition));
+
+		Name false_label = std::format("false_label.{0}", m_global_label_counter);
+		Name end_label = std::format("end_label.{0}", m_global_label_counter);
+		m_global_label_counter++;
+
+		// If the result of the condition is false, jump to the false label, which might be the
+		// end of the statement or the start of the else statement if one is present
+		output.push_back(jump_zero(result, false_label));
+		generate_statement(if_statement->body, output);
+		
+		if (if_statement->else_body) {
+			// If there is an else statement, emit a jump instruction to execute after the if body
+			// instructions are finished, in order to skip the else body instructions
+			output.push_back(jump(end_label));
+
+			// Here start the instructions of the else body
+			output.push_back(label(false_label));
+			generate_statement(if_statement->else_body, output);
+			output.push_back(label(end_label));
+		}
+		else
+			output.push_back(label(false_label));
 	}
 
 	ptr<AIRValueNode> AIRGenerator::resolve_expression(ptr<ExpressionNode> expression, AIRInstructionList& output) {
@@ -297,13 +329,16 @@ namespace Anthem {
 		ptr<AIRValueNode> source = resolve_expression(assignment->expression, output);
 		ptr<AIRVariableValueNode> target = std::static_pointer_cast<AIRVariableValueNode>(resolve_expression(assignment->lvalue, output));
 
-		output.push_back(std::make_shared<AIRSetInstructionNode>(target, source));
+		output.push_back(set(target, source));
 		return target;
 	}
 
 	ptr<AIRValueNode> AIRGenerator::logical_binary_operation(ptr<BinaryOperationNode> binary_op, AIRInstructionList& output) {
 		Name early_leave_label = std::format("early_leave.{0}", m_global_label_counter);
 		Name end_label = std::format("end.{0}", m_global_label_counter);
+		// Increment label counter in order to have unique identifiers
+		m_global_label_counter++;
+
 		// Set true to evaluate AND operation, false to evaluate OR operation
 		bool and_operation = true;
 
@@ -315,17 +350,17 @@ namespace Anthem {
 		ptr<AIRValueNode> source_a = resolve_expression(binary_op->left_expression, output);
 		// If left expression is false (or true depending on the operation), short-circuit the operation, dont resolve right expression and jump to false/true label
 		if(and_operation)
-			output.push_back(std::make_shared<AIRJumpIfZeroInstructionNode>(source_a, early_leave_label));
+			output.push_back(jump_zero(source_a, early_leave_label));
 		else
-			output.push_back(std::make_shared<AIRJumpIfNotZeroInstructionNode>(source_a, early_leave_label));
+			output.push_back(jump_not_zero(source_a, early_leave_label));
 
 		// Resolve right expression
 		ptr<AIRValueNode> source_b = resolve_expression(binary_op->right_expression, output);
 		// If right expression is also false (or true depending on the operation) jump to false/true label
 		if (and_operation)
-			output.push_back(std::make_shared<AIRJumpIfZeroInstructionNode>(source_b, early_leave_label));
+			output.push_back(jump_zero(source_b, early_leave_label));
 		else
-			output.push_back(std::make_shared<AIRJumpIfNotZeroInstructionNode>(source_b, early_leave_label));
+			output.push_back(jump_not_zero(source_b, early_leave_label));
 
 		// Return variable
 		Name destination_name = make_temporary_name();
@@ -333,22 +368,44 @@ namespace Anthem {
 
 		// If both sides evaluated to true (or false), set the return value to true (or false) and skip over the early_leave label instruction
 		if (and_operation)
-			output.push_back(std::make_shared<AIRSetInstructionNode>(destination, std::make_shared<AIRIntegerValueNode>(1)));
+			output.push_back(set(destination, integer(1)));
 		else
-			output.push_back(std::make_shared<AIRSetInstructionNode>(destination, std::make_shared<AIRIntegerValueNode>(0)));
-		output.push_back(std::make_shared<AIRJumpInstructionNode>(end_label));
+			output.push_back(set(destination, integer(0)));
+		output.push_back(jump(end_label));
 
 		// False label, set return value to false
-		output.push_back(std::make_shared<AIRLabelNode>(early_leave_label));
+		output.push_back(label(early_leave_label));
 		if(and_operation)
-			output.push_back(std::make_shared<AIRSetInstructionNode>(destination, std::make_shared<AIRIntegerValueNode>(0)));
+			output.push_back(set(destination, integer(0)));
 		else
-			output.push_back(std::make_shared<AIRSetInstructionNode>(destination, std::make_shared<AIRIntegerValueNode>(1)));
+			output.push_back(set(destination, integer(1)));
 
-		output.push_back(std::make_shared<AIRLabelNode>(end_label));
+		output.push_back(label(end_label));
 
-		// Increment label counter in order to have unique identifiers
-		m_global_label_counter++;
 		return destination;
+	}
+
+	ptr<AIRIntegerValueNode> AIRGenerator::integer(int integer) {
+		return std::make_shared<AIRIntegerValueNode>(integer);
+	}
+
+	ptr<AIRSetInstructionNode> AIRGenerator::set(ptr<AIRVariableValueNode> variable, ptr<AIRValueNode> value) {
+		return std::make_shared<AIRSetInstructionNode>(variable, value);
+	}
+
+	ptr<AIRLabelNode> AIRGenerator::label(const Name& name) {
+		return std::make_shared<AIRLabelNode>(name);
+	}
+
+	ptr<AIRJumpInstructionNode> AIRGenerator::jump(const Name& label) {
+		return std::make_shared<AIRJumpInstructionNode>(label);
+	}
+
+	ptr<AIRJumpIfNotZeroInstructionNode> AIRGenerator::jump_not_zero(ptr<AIRValueNode> condition, const Name& label) {
+		return std::make_shared<AIRJumpIfNotZeroInstructionNode>(condition, label);
+	}
+
+	ptr<AIRJumpIfZeroInstructionNode> AIRGenerator::jump_zero(ptr<AIRValueNode> condition, const Name& label) {
+		return std::make_shared<AIRJumpIfZeroInstructionNode>(condition, label);
 	}
 }

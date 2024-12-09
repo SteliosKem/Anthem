@@ -23,13 +23,13 @@ namespace Anthem {
 		// -- Declaration Generation --
 
 		ptr<AIRFunctionNode> generate_function_declaration(ptr<FunctionDeclarationNode> function_node);
-		//ptr<AIRValueNode> generate_variable_declaration(ptr<VariableNode> variable_node);
 
 		// -- Statement Generation --
 
 		void generate_statement(ptr<StatementNode> statement_node, AIRInstructionList& output);
 		void generate_return(ptr<ReturnStatementNode> return_node, AIRInstructionList& output);
 		void generate_block(ptr<BlockStatementNode> block_statement, AIRInstructionList& output);
+		void generate_if(ptr<IfStatementNode> block_statement, AIRInstructionList& output);
 
 		// -- Expression Resolution and Instruction Generation --
 
@@ -39,6 +39,14 @@ namespace Anthem {
 		ptr<AIRValueNode> assignment(ptr<AssignmentNode> binary_op, AIRInstructionList& output);
 
 		ptr<AIRValueNode> logical_binary_operation(ptr<BinaryOperationNode> binary_op, AIRInstructionList& output);
+
+		// -- AIR Instruction Creation --
+		ptr<AIRIntegerValueNode> integer(int integer);
+		ptr<AIRSetInstructionNode> set(ptr<AIRVariableValueNode> variable, ptr<AIRValueNode> value);
+		ptr<AIRLabelNode> label(const Name& name);
+		ptr<AIRJumpInstructionNode> jump(const Name& label);
+		ptr<AIRJumpIfNotZeroInstructionNode> jump_not_zero(ptr<AIRValueNode> condition, const Name& label);
+		ptr<AIRJumpIfZeroInstructionNode> jump_zero(ptr<AIRValueNode> condition, const Name& label);
 	private:
 		uint32_t m_global_label_counter = 0;
 		ErrorHandler* m_error_handler;
