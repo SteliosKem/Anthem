@@ -12,7 +12,10 @@ namespace Anthem {
 	private:
 		// -- Utility --
 
+		using VarMap = std::unordered_map<Name, Name>;
+
 		void report_error(const std::string& error_msg, const Token& token);
+		VarMap& current_map();
 
 		// -- Analysis --
 
@@ -24,8 +27,8 @@ namespace Anthem {
 		// Generate unique name
 		Name make_unique(const Name& name);
 
-		// Map for local variables
-		std::unordered_map<Name, Name> m_local_map;
+		// Maps for local variables
+		std::vector<VarMap> m_local_map_stack;
 		uint64_t m_unique_counter{ 0 };
 		ErrorHandler* m_error_handler;
 	};

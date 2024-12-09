@@ -5,11 +5,9 @@
 
 fn main() { // Main Function
 	let a = 4;
-	if a == 6 ->
-		a = 7;
-	else if a > 9 ->
-		a = 4;
-	else
-		a = 0;
+	{
+		a = 2;
+		
+	}
 	return a;
 }

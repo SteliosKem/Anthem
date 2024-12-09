@@ -4,9 +4,14 @@ namespace Anthem {
 	SemanticAnalyzer::SemanticAnalyzer(ErrorHandler* error_handler) : m_error_handler{ error_handler } {}
 
 	void SemanticAnalyzer::analyze_resolve(ptr<ProgramNode> program_node) {
+		m_local_map_stack.push_back({});
 		for (auto& decl : program_node->declarations) {
 			analyze_declaration(decl);
 		}
+	}
+
+	SemanticAnalyzer::VarMap& SemanticAnalyzer::current_map() {
+		return m_local_map_stack[m_local_map_stack.size() - 1];
 	}
 
 	void SemanticAnalyzer::analyze_declaration(ptr<DeclarationNode> declaration_node) {
@@ -15,14 +20,14 @@ namespace Anthem {
 		case NodeType::VARIABLE: {
 			ptr<VariableNode> variable = std::static_pointer_cast<VariableNode>(declaration_node);
 			Name variable_name = variable->variable_token.value;
-			if (m_local_map.find(variable_name) != m_local_map.end())
+			if (current_map().find(variable_name) != current_map().end())
 				report_error("Variable '" + variable_name + "' is already defined", variable->variable_token);
 
 			if (variable->expression)
 				analyze_expression(variable->expression);
 
 			Name new_var_name = make_unique(variable_name);
-			m_local_map[variable_name] = new_var_name;
+			current_map()[variable_name] = new_var_name;
 			variable->variable_token.value = new_var_name;
 			break;
 		}
@@ -42,12 +47,14 @@ namespace Anthem {
 		{
 		case NodeType::BLOCK_STATEMENT: {
 			ptr<BlockStatementNode> block_statement = std::static_pointer_cast<BlockStatementNode>(statement);
+			m_local_map_stack.push_back(current_map());
 			for (auto& block : block_statement->items) {
 				if (std::holds_alternative<ptr<StatementNode>>(block))
 					analyze_statement(std::get<ptr<StatementNode>>(block));
 				else
 					analyze_declaration(std::get<ptr<DeclarationNode>>(block));
 			}
+			m_local_map_stack.pop_back();
 			break;
 		}
 		case NodeType::EXPR_STATEMENT: {
@@ -97,10 +104,10 @@ namespace Anthem {
 		case NodeType::NAME_ACCESS: {
 			ptr<AccessNode> name_access = std::static_pointer_cast<AccessNode>(expression);
 			Name name = name_access->variable_token.value;
-			if (m_local_map.find(name) == m_local_map.end())
-				report_error("Undeclared variable '" + name + "'", name_access->variable_token);
+			if (current_map().find(name) == current_map().end())
+				report_error("Variable '" + name + "' is not defined in this scope", name_access->variable_token);
 			else
-				name_access->variable_token.value = m_local_map[name];
+				name_access->variable_token.value = current_map()[name];
 			break;
 		}
 		}
