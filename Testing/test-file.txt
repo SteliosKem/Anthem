@@ -5,8 +5,11 @@
 
 fn main() { // Main Function
 	let a = 2 + 4;
-	a = a + 2;
-	let b = 2;
-	a = b;
+	if a == 6 -> {
+		a = 7;
+		return 8;
+	}
+	else
+		return 2;
 	return a;
 }

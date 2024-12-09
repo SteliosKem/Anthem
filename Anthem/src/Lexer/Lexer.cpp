@@ -142,7 +142,8 @@ namespace Anthem {
 		case ':':	advance(); return Token{ COLON, ":", position };
 		// Check for double character tokens
 		case '+':	to_return = match('=') ? Token{ PLUS_EQUAL, "+=", next_position } : Token{ PLUS, "+", position }; advance(); return to_return;
-		case '-':	to_return = match('=') ? Token{ MINUS_EQUAL, "-=", next_position } : Token{ MINUS, "-", position }; advance(); return to_return;
+		case '-':	/* Match Arrow */ if (match('>')) { advance(); return Token{ARROW, "->", next_position}; }
+					to_return = match('=') ? Token{ MINUS_EQUAL, "-=", next_position } : Token{ MINUS, "-", position }; advance(); return to_return;
 		case '*':	to_return = match('=') ? Token{ STAR_EQUAL, "*=", next_position } : Token{ STAR, "*", position }; advance(); return to_return;
 		case '/':	to_return = match('=') ? Token{ SLASH_EQUAL, "/=", next_position } : Token{ SLASH, "/", position }; advance(); return to_return;
 		case '!':	to_return = match('=') ? Token{ BANG_EQUAL, "!=", next_position } : Token{ BANG, "!", position }; advance(); return to_return;

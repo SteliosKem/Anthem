@@ -55,6 +55,7 @@ namespace Anthem {
 		ptr<ReturnStatementNode> parse_return_statement();
 		ptr<BlockStatementNode> parse_block_statement();
 		ptr<ExprStatementNode> parse_expr_statement();
+		ptr<IfStatementNode> parse_if_statement();
 
 		// Expression Parsing
 

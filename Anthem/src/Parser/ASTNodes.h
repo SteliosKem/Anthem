@@ -33,7 +33,8 @@ namespace Anthem {
 			RETURN_STATEMENT,
 			EXPR_STATEMENT,
 			VOID_STATEMENT,
-			BLOCK_STATEMENT
+			BLOCK_STATEMENT,
+			IF_STATEMENT
 	};
 
 	// General Nodes
@@ -152,17 +153,6 @@ namespace Anthem {
 
 	// Statement Nodes
 
-	using GroupStatement = std::vector<ptr<StatementNode>>;
-
-	class GroupStatementNode : public StatementNode {
-	public:
-		GroupStatementNode(const GroupStatement& group) : statements{ group } {}
-
-		NODE_TYPE(GROUP_STATEMENT)
-	public:
-		GroupStatement statements;
-	};
-
 	class ReturnStatementNode : public StatementNode {
 	public:
 		ReturnStatementNode(ptr<ExpressionNode> expr) : expression{ expr } {}
@@ -197,5 +187,20 @@ namespace Anthem {
 		NODE_TYPE(BLOCK_STATEMENT)
 	public:
 		BlockItems items;
+	};
+
+	class IfStatementNode : public StatementNode {
+	public:
+		IfStatementNode() = default;
+		IfStatementNode(ptr<ExpressionNode> condition, ptr<StatementNode> body, ptr<StatementNode> else_body)
+			: condition{ condition }, body{ body }, else_body{ else_body } {}
+
+		NODE_TYPE(IF_STATEMENT)
+	public:
+		ptr<ExpressionNode> condition;
+		ptr<StatementNode> body;
+
+		// If there is no else statement, set to nullptr
+		ptr<StatementNode> else_body = nullptr;
 	};
 }

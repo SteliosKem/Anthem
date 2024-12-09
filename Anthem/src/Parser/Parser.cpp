@@ -163,6 +163,20 @@ namespace Anthem {
 				}
 				break;
 			}
+			case NodeType::IF_STATEMENT: {
+				ptr<IfStatementNode> if_statement = std::static_pointer_cast<IfStatementNode>(node);
+				std::cout << padding << "If: ";
+				pretty_print(if_statement->condition);
+				std::cout << " then:\n";
+				pretty_print(if_statement->body, padding + "\t");
+				std::cout << "\n";
+				if (if_statement->else_body) {
+					std::cout << padding << "Else:\n";
+					pretty_print(if_statement->else_body, padding + "\t");
+					std::cout << "\n";
+				}
+				break;
+			}
 		default:
 			break;
 		}
@@ -278,6 +292,8 @@ namespace Anthem {
 		{
 		case RETURN:
 			return parse_return_statement();
+		case IF:
+			return parse_if_statement();
 		case LEFT_BRACE:
 			return parse_block_statement();
 		case SEMICOLON:
@@ -316,6 +332,21 @@ namespace Anthem {
 		CONSUME_SEMICOLON();
 
 		return std::make_shared<ExprStatementNode>(expression);
+	}
+
+	ptr<IfStatementNode> Parser::parse_if_statement() {
+		advance();
+		ptr<ExpressionNode> condition = parse_expression();
+
+		consume(ARROW, "Expected '->' after if condition");
+
+		ptr<StatementNode> if_body = parse_statement();
+		ptr<StatementNode> else_body = nullptr;
+
+		if (match(ELSE))
+			else_body = parse_statement();
+
+		return std::make_shared<IfStatementNode>(condition, if_body, else_body);
 	}
 
 	ptr<ExpressionNode> Parser::parse_expression(uint8_t mininum_precedence) {
