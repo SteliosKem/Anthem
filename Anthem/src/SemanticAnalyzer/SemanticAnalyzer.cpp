@@ -75,6 +75,25 @@ namespace Anthem {
 				analyze_statement(if_statement->else_body);
 			break;
 		}
+		case NodeType::WHILE_STATEMENT: {
+			ptr<WhileStatementNode> while_statement = std::static_pointer_cast<WhileStatementNode>(statement);
+			analyze_expression(while_statement->condition);
+			analyze_statement(while_statement->body);
+			break;
+		}
+		case NodeType::LOOP_STATEMENT: {
+			ptr<LoopStatementNode> loop_statement = std::static_pointer_cast<LoopStatementNode>(statement);
+			analyze_statement(loop_statement->body);
+			break;
+		}
+		case NodeType::FOR_STATEMENT: {
+			ptr<ForStatementNode> for_statement = std::static_pointer_cast<ForStatementNode>(statement);
+			analyze_expression(for_statement->init);
+			analyze_expression(for_statement->condition);
+			analyze_expression(for_statement->post_loop);
+			analyze_statement(for_statement->body);
+			break;
+		}
 		default:
 			break;
 		}
