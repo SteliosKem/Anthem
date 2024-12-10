@@ -326,6 +326,14 @@ namespace Anthem {
 			return parse_for_statement();
 		case LOOP:
 			return parse_loop_statement();
+		case BREAK:
+			advance();
+			CONSUME_SEMICOLON();
+			return std::make_shared<BreakStatementNode>();
+		case CONTINUE:
+			advance();
+			CONSUME_SEMICOLON();
+			return std::make_shared<ContinueStatementNode>();
 		case LEFT_BRACE:
 			return parse_block_statement();
 		case SEMICOLON:

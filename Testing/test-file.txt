@@ -1,5 +1,12 @@
 fn main() { // Main Function
 	let a = 4;
-	for a = 0; a < 5; a = a + 1 -> ;
+	loop {
+		loop {
+			a = a + 1;
+			if a > 5 -> break;
+		}
+		a = a + 1;
+		if a > 100 -> break;
+	}
 	return a;
 }

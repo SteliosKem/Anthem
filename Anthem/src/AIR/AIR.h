@@ -33,6 +33,8 @@ namespace Anthem {
 		void generate_loop(ptr<LoopStatementNode> loop_statement, AIRInstructionList& output);
 		void generate_while(ptr<WhileStatementNode> while_statement, AIRInstructionList& output);
 		void generate_for(ptr<ForStatementNode> for_statement, AIRInstructionList& output);
+		void generate_break(ptr<BreakStatementNode> break_statement, AIRInstructionList& output);
+		void generate_continue(ptr<ContinueStatementNode> continue_statement, AIRInstructionList& output);
 
 		// -- Expression Resolution and Instruction Generation --
 
@@ -44,6 +46,7 @@ namespace Anthem {
 		ptr<AIRValueNode> logical_binary_operation(ptr<BinaryOperationNode> binary_op, AIRInstructionList& output);
 
 		// -- AIR Instruction Creation --
+
 		ptr<AIRIntegerValueNode> integer(int integer);
 		ptr<AIRSetInstructionNode> set(ptr<AIRVariableValueNode> variable, ptr<AIRValueNode> value);
 		ptr<AIRLabelNode> label(const Name& name);

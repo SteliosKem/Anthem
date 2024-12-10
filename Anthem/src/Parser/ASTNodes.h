@@ -38,6 +38,8 @@ namespace Anthem {
 			LOOP_STATEMENT,
 			WHILE_STATEMENT,
 			FOR_STATEMENT,
+			BREAK_STATEMENT,
+			CONTINUE_STATEMENT,
 	};
 
 	// General Nodes
@@ -215,6 +217,7 @@ namespace Anthem {
 		NODE_TYPE(LOOP_STATEMENT)
 	public:
 		ptr<StatementNode> body;
+		uint64_t id;
 	};
 
 	class WhileStatementNode : public StatementNode {
@@ -226,6 +229,7 @@ namespace Anthem {
 	public:
 		ptr<ExpressionNode> condition;
 		ptr<StatementNode> body;
+		uint64_t id;
 	};
 
 	class ForStatementNode : public StatementNode {
@@ -240,5 +244,18 @@ namespace Anthem {
 		ptr<ExpressionNode> post_loop;
 		ptr<ExpressionNode> condition;
 		ptr<StatementNode> body;
+		uint64_t id;
+	};
+
+	class BreakStatementNode : public StatementNode {
+	public:
+		NODE_TYPE(BREAK_STATEMENT)
+		uint64_t id;
+	};
+
+	class ContinueStatementNode : public StatementNode {
+	public:
+		NODE_TYPE(CONTINUE_STATEMENT)
+		uint64_t id;
 	};
 }

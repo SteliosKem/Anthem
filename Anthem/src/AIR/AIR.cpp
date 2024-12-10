@@ -231,6 +231,12 @@ namespace Anthem {
 		case NodeType::FOR_STATEMENT:
 			generate_for(std::static_pointer_cast<ForStatementNode>(statement_node), output);
 			break;
+		case NodeType::BREAK_STATEMENT:
+			generate_break(std::static_pointer_cast<BreakStatementNode>(statement_node), output);
+			break;
+		case NodeType::CONTINUE_STATEMENT:
+			generate_continue(std::static_pointer_cast<ContinueStatementNode>(statement_node), output);
+			break;
 		default:
 			return;
 		}
@@ -250,16 +256,18 @@ namespace Anthem {
 	}
 
 	void AIRGenerator::generate_loop(ptr<LoopStatementNode> loop_statement, AIRInstructionList& output) {
-		Name loop_label = std::format("loop.{0}", m_global_label_counter++);
+		Name loop_label = std::format("loop.{0}", loop_statement->id);
+		Name exit_label = std::format("exit.{0}", loop_statement->id);
+
 		output.push_back(label(loop_label));
 		generate_statement(loop_statement->body, output);
 		output.push_back(jump(loop_label));
+		output.push_back(label(exit_label));
 	}
 
 	void AIRGenerator::generate_while(ptr<WhileStatementNode> while_statement, AIRInstructionList& output) {
-		Name loop_label = std::format("condition.{0}", m_global_label_counter);
-		Name exit_label = std::format("exit.{0}", m_global_label_counter);
-		m_global_label_counter++;
+		Name loop_label = std::format("loop.{0}", while_statement->id);
+		Name exit_label = std::format("exit.{0}", while_statement->id);
 
 		output.push_back(label(loop_label));
 		auto result = resolve_expression(while_statement->condition, output);
@@ -271,10 +279,9 @@ namespace Anthem {
 	}
 
 	void AIRGenerator::generate_for(ptr<ForStatementNode> for_statement, AIRInstructionList& output) {
-		Name loop_label = std::format("condition.{0}", m_global_label_counter);
-		Name post_label = std::format("post.{0}", m_global_label_counter);
-		Name exit_label = std::format("exit.{0}", m_global_label_counter);
-		m_global_label_counter++;
+		Name loop_label = std::format("loop.{0}", for_statement->id);
+		Name post_label = std::format("post.{0}", for_statement->id);
+		Name exit_label = std::format("exit.{0}", for_statement->id);
 
 		resolve_expression(for_statement->init, output);
 		output.push_back(label(loop_label));
@@ -286,6 +293,16 @@ namespace Anthem {
 		resolve_expression(for_statement->post_loop, output);
 		output.push_back(jump(loop_label));
 		output.push_back(label(exit_label));
+	}
+
+	void AIRGenerator::generate_break(ptr<BreakStatementNode> break_statement, AIRInstructionList& output) {
+		// Jump to the exit label of the loop corresponding to this break statement
+		output.push_back(jump(std::format("exit.{0}", break_statement->id)));
+	}
+
+	void AIRGenerator::generate_continue(ptr<ContinueStatementNode> continue_statement, AIRInstructionList& output) {
+		// Jump to the loop start label of the loop corresponding to this continue statement
+		output.push_back(jump(std::format("loop.{0}", continue_statement->id)));
 	}
 
 	void AIRGenerator::generate_if(ptr<IfStatementNode> if_statement, AIRInstructionList& output) {

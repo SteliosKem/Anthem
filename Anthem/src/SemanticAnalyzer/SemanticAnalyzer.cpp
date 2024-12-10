@@ -14,18 +14,30 @@ namespace Anthem {
 		return m_local_map_stack[m_local_map_stack.size() - 1];
 	}
 
+	uint64_t SemanticAnalyzer::new_loop() {
+		m_loop_stack.push_back(m_loop_counter);
+		return m_loop_counter++;
+	}
+
+	uint64_t SemanticAnalyzer::current_loop() {
+		return m_loop_stack[m_loop_stack.size() - 1];
+	}
+
 	void SemanticAnalyzer::analyze_declaration(ptr<DeclarationNode> declaration_node) {
 		switch (declaration_node->get_type())
 		{
 		case NodeType::VARIABLE: {
 			ptr<VariableNode> variable = std::static_pointer_cast<VariableNode>(declaration_node);
 			Name variable_name = variable->variable_token.value;
+
+			// Check if variable already exists
 			if (current_map().find(variable_name) != current_map().end())
 				report_error("Variable '" + variable_name + "' is already defined", variable->variable_token);
 
 			if (variable->expression)
 				analyze_expression(variable->expression);
 
+			// Add variable to the variable map
 			Name new_var_name = make_unique(variable_name);
 			current_map()[variable_name] = new_var_name;
 			variable->variable_token.value = new_var_name;
@@ -69,6 +81,8 @@ namespace Anthem {
 		}
 		case NodeType::IF_STATEMENT: {
 			ptr<IfStatementNode> if_statement = std::static_pointer_cast<IfStatementNode>(statement);
+
+			// Resolve subexpressions and statements
 			analyze_expression(if_statement->condition);
 			analyze_statement(if_statement->body);
 			if (if_statement->else_body)
@@ -76,22 +90,65 @@ namespace Anthem {
 			break;
 		}
 		case NodeType::WHILE_STATEMENT: {
+			// Each loop gets a unique id to distinguish break and continue statements
+			uint64_t loop_id = new_loop();
 			ptr<WhileStatementNode> while_statement = std::static_pointer_cast<WhileStatementNode>(statement);
+			while_statement->id = loop_id;
+
+			// Resolve subexpressions and statements
 			analyze_expression(while_statement->condition);
 			analyze_statement(while_statement->body);
+
+			// Set current loop to the outer loop (if there is one)
+			m_loop_stack.pop_back();
 			break;
 		}
 		case NodeType::LOOP_STATEMENT: {
+			// Each loop gets a unique id to distinguish break and continue statements
+			uint64_t loop_id = new_loop();
 			ptr<LoopStatementNode> loop_statement = std::static_pointer_cast<LoopStatementNode>(statement);
+			loop_statement->id = loop_id;
+
 			analyze_statement(loop_statement->body);
+
+			// Set current loop to the outer loop (if there is one)
+			m_loop_stack.pop_back();
 			break;
 		}
 		case NodeType::FOR_STATEMENT: {
+			// Each loop gets a unique id to distinguish break and continue statements
+			uint64_t loop_id = new_loop();
 			ptr<ForStatementNode> for_statement = std::static_pointer_cast<ForStatementNode>(statement);
+			for_statement->id = loop_id;
+
+			// Resolve subexpressions and statements
 			analyze_expression(for_statement->init);
 			analyze_expression(for_statement->condition);
 			analyze_expression(for_statement->post_loop);
 			analyze_statement(for_statement->body);
+
+			// Set current loop to the outer loop (if there is one)
+			m_loop_stack.pop_back();
+			break;
+		}
+		case NodeType::BREAK_STATEMENT: {
+			if (m_loop_stack.empty())
+				m_error_handler->report_error(Error{ "Cannot use break outside of a loop" });
+			else {
+				ptr<BreakStatementNode> break_statement = std::static_pointer_cast<BreakStatementNode>(statement);
+				// Attach the id corresponding to the current loop we are in
+				break_statement->id = current_loop();
+			}
+			break;
+		}
+		case NodeType::CONTINUE_STATEMENT: {
+			if (m_loop_stack.empty())
+				m_error_handler->report_error(Error{ "Cannot use continue outside of a loop" });
+			else {
+				ptr<ContinueStatementNode> continue_statement = std::static_pointer_cast<ContinueStatementNode>(statement);
+				// Attach the id corresponding to the current loop we are in
+				continue_statement->id = current_loop();
+			}
 			break;
 		}
 		default:
@@ -114,6 +171,8 @@ namespace Anthem {
 		}
 		case NodeType::ASSIGNMENT: {
 			ptr<AssignmentNode> assignment = std::static_pointer_cast<AssignmentNode>(expression);
+
+			// Check if assignment target is an LValue
 			if (assignment->lvalue->get_type() != NodeType::NAME_ACCESS)
 				report_error("Invalid assignment target", assignment->token);
 			analyze_expression(assignment->lvalue);
@@ -123,6 +182,8 @@ namespace Anthem {
 		case NodeType::NAME_ACCESS: {
 			ptr<AccessNode> name_access = std::static_pointer_cast<AccessNode>(expression);
 			Name name = name_access->variable_token.value;
+
+			// Check if the variable exists
 			if (current_map().find(name) == current_map().end())
 				report_error("Variable '" + name + "' is not defined in this scope", name_access->variable_token);
 			else

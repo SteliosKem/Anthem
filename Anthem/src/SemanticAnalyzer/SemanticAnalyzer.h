@@ -17,6 +17,9 @@ namespace Anthem {
 		void report_error(const std::string& error_msg, const Token& token);
 		VarMap& current_map();
 
+		uint64_t new_loop();
+		uint64_t current_loop();
+
 		// -- Analysis --
 
 		void analyze_declaration(ptr<DeclarationNode> declaration_node);
@@ -29,6 +32,11 @@ namespace Anthem {
 
 		// Maps for local variables
 		std::vector<VarMap> m_local_map_stack;
+
+		// Stack for loop ids;
+		std::vector<uint64_t> m_loop_stack;
+		uint64_t m_loop_counter{ 0 };
+
 		uint64_t m_unique_counter{ 0 };
 		ErrorHandler* m_error_handler;
 	};
