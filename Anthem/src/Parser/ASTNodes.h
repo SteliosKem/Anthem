@@ -34,7 +34,10 @@ namespace Anthem {
 			EXPR_STATEMENT,
 			VOID_STATEMENT,
 			BLOCK_STATEMENT,
-			IF_STATEMENT
+			IF_STATEMENT,
+			LOOP_STATEMENT,
+			WHILE_STATEMENT,
+			FOR_STATEMENT,
 	};
 
 	// General Nodes
@@ -202,5 +205,40 @@ namespace Anthem {
 
 		// If there is no else statement, set to nullptr
 		ptr<StatementNode> else_body = nullptr;
+	};
+
+	class LoopStatementNode : public StatementNode {
+	public:
+		LoopStatementNode() = default;
+		LoopStatementNode(ptr<StatementNode> body) : body{ body } {}
+
+		NODE_TYPE(LOOP_STATEMENT)
+	public:
+		ptr<StatementNode> body;
+	};
+
+	class WhileStatementNode : public StatementNode {
+	public:
+		WhileStatementNode() = default;
+		WhileStatementNode(ptr<ExpressionNode> condition, ptr<StatementNode> body) : condition{ condition }, body { body } {}
+
+		NODE_TYPE(WHILE_STATEMENT)
+	public:
+		ptr<ExpressionNode> condition;
+		ptr<StatementNode> body;
+	};
+
+	class ForStatementNode : public StatementNode {
+	public:
+		ForStatementNode() = default;
+		ForStatementNode(BlockItem init, ptr<ExpressionNode> condition, ptr<ExpressionNode> post_loop, ptr<StatementNode> body)
+			: condition{ condition }, body{ body }, init{ init }, post_loop{ post_loop } {}
+
+		NODE_TYPE(FOR_STATEMENT)
+	public:
+		BlockItem init;
+		ptr<ExpressionNode> post_loop;
+		ptr<ExpressionNode> condition;
+		ptr<StatementNode> body;
 	};
 }
