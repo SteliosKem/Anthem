@@ -231,12 +231,12 @@ namespace Anthem {
 	class ForStatementNode : public StatementNode {
 	public:
 		ForStatementNode() = default;
-		ForStatementNode(BlockItem init, ptr<ExpressionNode> condition, ptr<ExpressionNode> post_loop, ptr<StatementNode> body)
+		ForStatementNode(ptr<ExpressionNode> init, ptr<ExpressionNode> condition, ptr<ExpressionNode> post_loop, ptr<StatementNode> body)
 			: condition{ condition }, body{ body }, init{ init }, post_loop{ post_loop } {}
 
 		NODE_TYPE(FOR_STATEMENT)
 	public:
-		BlockItem init;
+		ptr<ExpressionNode> init;
 		ptr<ExpressionNode> post_loop;
 		ptr<ExpressionNode> condition;
 		ptr<StatementNode> body;

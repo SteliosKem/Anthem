@@ -177,6 +177,32 @@ namespace Anthem {
 				}
 				break;
 			}
+			case NodeType::LOOP_STATEMENT: {
+				ptr<LoopStatementNode> loop_statement = std::static_pointer_cast<LoopStatementNode>(node);
+				std::cout << padding << "Loop:\n";
+				pretty_print(loop_statement->body, padding + "\t");
+				break;
+			}
+			case NodeType::WHILE_STATEMENT: {
+				ptr<WhileStatementNode> while_statement = std::static_pointer_cast<WhileStatementNode>(node);
+				std::cout << padding << "While: ";
+				pretty_print(while_statement->condition);
+				std::cout << " do:\n";
+				pretty_print(while_statement->body, padding + "\t");
+				break;
+			}
+			case NodeType::FOR_STATEMENT: {
+				ptr<ForStatementNode> for_statement = std::static_pointer_cast<ForStatementNode>(node);
+				std::cout << padding << "For: Init: ";
+				pretty_print(for_statement->init);
+				std::cout << " While ";
+				pretty_print(for_statement->condition);
+				std::cout << " Post ";
+				pretty_print(for_statement->post_loop);
+				std::cout << " do:\n";
+				pretty_print(for_statement->body, padding + "\t");
+				break;
+			}
 		default:
 			break;
 		}
@@ -294,6 +320,12 @@ namespace Anthem {
 			return parse_return_statement();
 		case IF:
 			return parse_if_statement();
+		case WHILE:
+			return parse_while_statement();
+		case FOR:
+			return parse_for_statement();
+		case LOOP:
+			return parse_loop_statement();
 		case LEFT_BRACE:
 			return parse_block_statement();
 		case SEMICOLON:
@@ -347,6 +379,39 @@ namespace Anthem {
 			else_body = parse_statement();
 
 		return std::make_shared<IfStatementNode>(condition, if_body, else_body);
+	}
+
+	ptr<LoopStatementNode> Parser::parse_loop_statement() {
+		advance();
+		return std::make_shared<LoopStatementNode>(parse_statement());
+	}
+
+	ptr<WhileStatementNode> Parser::parse_while_statement() {
+		advance();
+		ptr<ExpressionNode> condition = parse_expression();
+
+		consume(ARROW, "Expected '->' after if condition");
+
+		ptr<StatementNode> while_body = parse_statement();
+
+		return std::make_shared<WhileStatementNode>(condition, while_body);
+	}
+
+	ptr<ForStatementNode> Parser::parse_for_statement() {
+		advance();
+		ptr<ExpressionNode> init = parse_expression();
+		consume(SEMICOLON, "Expected ';'");
+
+		ptr<ExpressionNode> condition = parse_expression();
+		consume(SEMICOLON, "Expected ';'");
+
+		ptr<ExpressionNode> post_loop = parse_expression();
+
+		consume(ARROW, "Expected '->'");
+
+		ptr<StatementNode> for_body = parse_statement();
+
+		return std::make_shared<ForStatementNode>(init, condition, post_loop, for_body);
 	}
 
 	ptr<ExpressionNode> Parser::parse_expression(uint8_t mininum_precedence) {

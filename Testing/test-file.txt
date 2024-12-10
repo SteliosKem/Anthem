@@ -1,13 +1,7 @@
-/* 
-   Multiline Comment
-   Still Here
-*/
-
 fn main() { // Main Function
 	let a = 4;
-	{
-		a = 2;
-		
+	for a = 0; a < 10; a = a + 1 -> {
+		a = 5;
 	}
 	return a;
 }
