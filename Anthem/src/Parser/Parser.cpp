@@ -329,6 +329,7 @@ namespace Anthem {
 		case LEFT_BRACE:
 			return parse_block_statement();
 		case SEMICOLON:
+			advance();
 			return std::make_shared<VoidStatementNode>();
 		// If nothing matches, then it probably will be an expression statement
 		default:

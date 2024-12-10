@@ -29,7 +29,10 @@ namespace Anthem {
 		void generate_statement(ptr<StatementNode> statement_node, AIRInstructionList& output);
 		void generate_return(ptr<ReturnStatementNode> return_node, AIRInstructionList& output);
 		void generate_block(ptr<BlockStatementNode> block_statement, AIRInstructionList& output);
-		void generate_if(ptr<IfStatementNode> block_statement, AIRInstructionList& output);
+		void generate_if(ptr<IfStatementNode> if_statement, AIRInstructionList& output);
+		void generate_loop(ptr<LoopStatementNode> loop_statement, AIRInstructionList& output);
+		void generate_while(ptr<WhileStatementNode> while_statement, AIRInstructionList& output);
+		void generate_for(ptr<ForStatementNode> for_statement, AIRInstructionList& output);
 
 		// -- Expression Resolution and Instruction Generation --
 

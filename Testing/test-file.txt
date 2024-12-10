@@ -1,7 +1,5 @@
 fn main() { // Main Function
 	let a = 4;
-	for a = 0; a < 10; a = a + 1 -> {
-		a = 5;
-	}
+	for a = 0; a < 5; a = a + 1 -> ;
 	return a;
 }

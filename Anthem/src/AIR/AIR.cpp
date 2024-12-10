@@ -222,6 +222,15 @@ namespace Anthem {
 		case NodeType::IF_STATEMENT:
 			generate_if(std::static_pointer_cast<IfStatementNode>(statement_node), output);
 			break;
+		case NodeType::LOOP_STATEMENT:
+			generate_loop(std::static_pointer_cast<LoopStatementNode>(statement_node), output);
+			break;
+		case NodeType::WHILE_STATEMENT:
+			generate_while(std::static_pointer_cast<WhileStatementNode>(statement_node), output);
+			break;
+		case NodeType::FOR_STATEMENT:
+			generate_for(std::static_pointer_cast<ForStatementNode>(statement_node), output);
+			break;
 		default:
 			return;
 		}
@@ -238,6 +247,45 @@ namespace Anthem {
 			else
 				generate_declaration(std::get<ptr<DeclarationNode>>(item), &output);
 		}
+	}
+
+	void AIRGenerator::generate_loop(ptr<LoopStatementNode> loop_statement, AIRInstructionList& output) {
+		Name loop_label = std::format("loop.{0}", m_global_label_counter++);
+		output.push_back(label(loop_label));
+		generate_statement(loop_statement->body, output);
+		output.push_back(jump(loop_label));
+	}
+
+	void AIRGenerator::generate_while(ptr<WhileStatementNode> while_statement, AIRInstructionList& output) {
+		Name loop_label = std::format("condition.{0}", m_global_label_counter);
+		Name exit_label = std::format("exit.{0}", m_global_label_counter);
+		m_global_label_counter++;
+
+		output.push_back(label(loop_label));
+		auto result = resolve_expression(while_statement->condition, output);
+		output.push_back(jump_zero(result, exit_label));
+		
+		generate_statement(while_statement->body, output);
+		output.push_back(jump(loop_label));
+		output.push_back(label(exit_label));
+	}
+
+	void AIRGenerator::generate_for(ptr<ForStatementNode> for_statement, AIRInstructionList& output) {
+		Name loop_label = std::format("condition.{0}", m_global_label_counter);
+		Name post_label = std::format("post.{0}", m_global_label_counter);
+		Name exit_label = std::format("exit.{0}", m_global_label_counter);
+		m_global_label_counter++;
+
+		resolve_expression(for_statement->init, output);
+		output.push_back(label(loop_label));
+		auto result = resolve_expression(for_statement->condition, output);
+		output.push_back(jump_zero(result, exit_label));
+
+		generate_statement(for_statement->body, output);
+
+		resolve_expression(for_statement->post_loop, output);
+		output.push_back(jump(loop_label));
+		output.push_back(label(exit_label));
 	}
 
 	void AIRGenerator::generate_if(ptr<IfStatementNode> if_statement, AIRInstructionList& output) {
