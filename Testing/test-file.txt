@@ -1,12 +1,9 @@
 fn main() { // Main Function
 	let a = 4;
-	loop {
-		loop {
-			a = a + 1;
-			if a > 5 -> break;
-		}
-		a = a + 1;
-		if a > 100 -> break;
-	}
+	other_func(5);
 	return a;
+}
+
+fn other_func(var1) {
+	return 1;
 }

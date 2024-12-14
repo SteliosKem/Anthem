@@ -86,7 +86,11 @@ namespace Anthem {
 			}
 			case NodeType::FUNCTION_DECLARATION: {
 				ptr<FunctionDeclarationNode> function_node = std::static_pointer_cast<FunctionDeclarationNode>(node);
-				std::cout << padding << "Function " << function_node->name << " (\n";
+				std::cout << padding << "Function " << function_node->name << " (";
+				for (auto& i : function_node->parameters) {
+					std::cout << i.name << ", ";
+				}
+				std::cout << ") (\n";
 				pretty_print(function_node->body, padding + "\t");
 				std::cout << padding << ")\n";
 				break;
@@ -203,6 +207,16 @@ namespace Anthem {
 				pretty_print(for_statement->body, padding + "\t");
 				break;
 			}
+			case NodeType::FUNCTION_CALL: {
+				ptr<FunctionCallNode> call = std::static_pointer_cast<FunctionCallNode>(node);
+				std::cout << padding << "Call: " << call->variable_token.value << " (";
+				for (auto& expr : call->argument_list) {
+					pretty_print(expr);
+					std::cout << ", ";
+				}
+				std::cout << ")";
+				break;
+			}
 		default:
 			break;
 		}
@@ -284,12 +298,26 @@ namespace Anthem {
 
 		// Handle Arguments
 		if (!consume(LEFT_PARENTHESIS, "Expected '('")) return nullptr;
+		std::vector<Parameter> parameter_list;
+
+		while (!is_current(RIGHT_PARENTHESIS) && !is_current(SPECIAL_EOF)) {
+			Token current_tok = current_token();
+			consume(IDENTIFIER, "Expected Parameter Name");
+
+			parameter_list.push_back({ current_tok.value });
+
+			if (is_current(COMMA))
+				advance();
+			else
+				break;
+		}
+
 		if (!consume(RIGHT_PARENTHESIS, "Expected ')'")) return nullptr;
 
 		// Parse Function Body - Can be a single statement
 		ptr<StatementNode> body = parse_statement();
 
-		return std::make_shared<FunctionDeclarationNode>(identifier.value, body);
+		return std::make_shared<FunctionDeclarationNode>(identifier.value, body, parameter_list);
 	}
 
 	ptr<DeclarationNode> Parser::parse_variable_declaration() {
@@ -465,6 +493,23 @@ namespace Anthem {
 		}
 		case IDENTIFIER: {
 			advance();
+			
+			if (match(LEFT_PARENTHESIS)) {
+				ArgList argument_list;
+				while (!is_current(RIGHT_PARENTHESIS) && !is_current(SPECIAL_EOF)) {
+					argument_list.push_back(parse_expression());
+
+					if (is_current(COMMA))
+						advance();
+					else
+						break;
+				}
+
+				if (!consume(RIGHT_PARENTHESIS, "Expected ')'")) return nullptr;
+
+
+				return std::make_shared<FunctionCallNode>(token, argument_list);
+			}
 			return std::make_shared<AccessNode>(token);
 		}
 		default:

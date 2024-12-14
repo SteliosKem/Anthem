@@ -27,6 +27,7 @@ namespace Anthem {
 			ASSIGNMENT,
 			VARIABLE,
 			NAME_ACCESS,
+			FUNCTION_CALL,
 
 		// Statements
 			GROUP_STATEMENT,
@@ -76,17 +77,24 @@ namespace Anthem {
 		NODE_TYPE(STATEMENT)
 	};
 
+	struct Parameter {
+		Name name;
+		ptr<ExpressionNode> default_value = nullptr;
+	};
+
 	// Declaration Nodes
 
 	class FunctionDeclarationNode : public DeclarationNode {
 	public:
-		FunctionDeclarationNode(const Name& name, ptr<StatementNode> body)
-			: name{ name }, body{ body } {}
+		FunctionDeclarationNode(const Name& name, ptr<StatementNode> body, const std::vector<Parameter>& parameters, Type type = Type::I32)
+			: name{ name }, body{ body }, parameters{ parameters }, return_type{ type } {}
 
 		NODE_TYPE(FUNCTION_DECLARATION)
 	public:
 		Name name;
+		std::vector<Parameter> parameters;
 		ptr<StatementNode> body;
+		Type return_type;
 	};
 
 	class VariableNode : public DeclarationNode {
@@ -154,6 +162,19 @@ namespace Anthem {
 		NODE_TYPE(NAME_ACCESS)
 	public:
 		Token variable_token;
+	};
+
+	using ArgList = std::vector<ptr<ExpressionNode>>;
+
+	class FunctionCallNode : public ExpressionNode {
+	public:
+		FunctionCallNode(Token variable_token, const ArgList& argument_list) 
+			: variable_token{ variable_token }, argument_list{ argument_list } {}
+
+		NODE_TYPE(FUNCTION_CALL)
+	public:
+		Token variable_token;
+		ArgList argument_list;
 	};
 
 	// Statement Nodes
