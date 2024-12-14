@@ -2,14 +2,22 @@
 #include <filesystem>
 #include <string>
 #include <memory>
+#include <variant>
 
 namespace Anthem {
 	template<typename T>
 	using ptr = std::shared_ptr<T>;
 
-	enum class Type {
+	enum class VarType {
 		I32
 	};
+
+	struct FunctionType {
+		VarType return_type = VarType::I32;
+		std::vector<VarType> parameters;
+	};
+
+	using Type = std::variant<VarType, FunctionType>;
 
 	enum class UnaryOperation {
 		NEGATE,

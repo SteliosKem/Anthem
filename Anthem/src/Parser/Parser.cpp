@@ -332,9 +332,9 @@ namespace Anthem {
 
 		// If there is assignment parse the expression given
 		if (match(EQUAL))
-			variable = std::make_shared<VariableNode>(identifier_token, Type::I32, parse_expression());
+			variable = std::make_shared<VariableNode>(identifier_token, VarType::I32, parse_expression());
 		else
-			variable = std::make_shared<VariableNode>(identifier_token, Type::I32);
+			variable = std::make_shared<VariableNode>(identifier_token, VarType::I32);
 
 		CONSUME_SEMICOLON();
 

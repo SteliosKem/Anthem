@@ -86,7 +86,7 @@ namespace Anthem {
 
 	class FunctionDeclarationNode : public DeclarationNode {
 	public:
-		FunctionDeclarationNode(const Name& name, ptr<StatementNode> body, const std::vector<Parameter>& parameters, Type type = Type::I32)
+		FunctionDeclarationNode(const Name& name, ptr<StatementNode> body, const std::vector<Parameter>& parameters, Type type = VarType::I32)
 			: name{ name }, body{ body }, parameters{ parameters }, return_type{ type } {}
 
 		NODE_TYPE(FUNCTION_DECLARATION)
@@ -99,7 +99,7 @@ namespace Anthem {
 
 	class VariableNode : public DeclarationNode {
 	public:
-		VariableNode(Token variable_token, Type type = Type::I32, ptr<ExpressionNode> expression = nullptr)
+		VariableNode(Token variable_token, Type type = VarType::I32, ptr<ExpressionNode> expression = nullptr)
 			: variable_token{ variable_token }, expression{ expression }, type{ type } {}
 
 		NODE_TYPE(VARIABLE)

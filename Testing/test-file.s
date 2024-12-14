@@ -17,8 +17,8 @@ main:
 other_func:
 	pushq %rbp
 	movq %rsp, %rbp
-	subq $0, %rsp
-	movl $1, %eax
+	subq $4, %rsp
+	movl -4(%rbp), %eax
 	movq %rbp, %rsp
 	popq %rbp
 	ret
