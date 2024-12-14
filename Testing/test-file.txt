@@ -7,3 +7,4 @@ fn main() { // Main Function
 fn other_func(var1) {
 	return 1;
 }
+

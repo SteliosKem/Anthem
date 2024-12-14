@@ -5,6 +5,14 @@ namespace Anthem {
 
 	void SemanticAnalyzer::analyze_resolve(ptr<ProgramNode> program_node) {
 		m_local_map_stack.push_back({});
+
+		// First pass to find all global declarations and handle duplicates
+		for (auto& decl : program_node->declarations) {
+			save_declaration(decl);
+		}
+		if (m_error_handler->has_errors())
+			return;
+
 		for (auto& decl : program_node->declarations) {
 			analyze_declaration(decl);
 		}
@@ -21,6 +29,27 @@ namespace Anthem {
 
 	uint64_t SemanticAnalyzer::current_loop() {
 		return m_loop_stack[m_loop_stack.size() - 1];
+	}
+
+	void SemanticAnalyzer::save_declaration(ptr<DeclarationNode> declaration_node) {
+		switch (declaration_node->get_type())
+		{
+		case NodeType::VARIABLE: {
+			break;
+		}
+		case NodeType::FUNCTION_DECLARATION: {
+			ptr<FunctionDeclarationNode> function = std::static_pointer_cast<FunctionDeclarationNode>(declaration_node);
+
+			// Check if function is already defined
+			if (m_global_map.find(function->name) != m_global_map.end())
+				report_error("Function '" + function->name + "' is already defined", {});
+
+			m_global_map[function->name] = function->name;
+			break;
+		}
+		default:
+			break;
+		}
 	}
 
 	void SemanticAnalyzer::analyze_declaration(ptr<DeclarationNode> declaration_node) {
@@ -46,7 +75,27 @@ namespace Anthem {
 							   
 		case NodeType::FUNCTION_DECLARATION: {
 			ptr<FunctionDeclarationNode> function = std::static_pointer_cast<FunctionDeclarationNode>(declaration_node);
-			analyze_statement(function->body);
+
+			m_global_map[function->name] = function->name;
+
+			if(function->parameters.empty())
+				analyze_statement(function->body);
+			else {
+				// If there are parameters push new scope
+				m_local_map_stack.push_back(current_map());
+				for (auto& param : function->parameters) {
+					// Check if parameter name already exists
+					if (current_map().find(param.name) != current_map().end())
+						report_error("Variable '" + param.name + "' is already defined", {});
+
+					// Add parameter to the local variable map
+					Name new_param_name = make_unique(param.name);
+					current_map()[param.name] = new_param_name;
+					param.name = new_param_name;
+				}
+				analyze_statement(function->body);
+				m_local_map_stack.pop_back();
+			}
 			break;
 		}
 		default:
@@ -188,6 +237,20 @@ namespace Anthem {
 				report_error("Variable '" + name + "' is not defined in this scope", name_access->variable_token);
 			else
 				name_access->variable_token.value = current_map()[name];
+			break;
+		}
+		case NodeType::FUNCTION_CALL: {
+			ptr<FunctionCallNode> function_call = std::static_pointer_cast<FunctionCallNode>(expression);
+			Name name = function_call->variable_token.value;
+
+			if (m_global_map.find(name) == m_global_map.end())
+				report_error("Function '" + name + "' is not defined", function_call->variable_token);
+			else
+				name = m_global_map[name];
+			
+			for (auto& expr : function_call->argument_list) {
+				analyze_expression(expr);
+			}
 			break;
 		}
 		}

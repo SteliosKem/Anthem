@@ -22,6 +22,8 @@ namespace Anthem {
 
 		// -- Analysis --
 
+		void save_declaration(ptr<DeclarationNode> declaration_node);
+
 		void analyze_declaration(ptr<DeclarationNode> declaration_node);
 
 		void analyze_statement(ptr<StatementNode> statement);
@@ -32,6 +34,7 @@ namespace Anthem {
 
 		// Maps for local variables
 		std::vector<VarMap> m_local_map_stack;
+		VarMap m_global_map;
 
 		// Stack for loop ids;
 		std::vector<uint64_t> m_loop_stack;
