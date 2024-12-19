@@ -154,6 +154,16 @@ namespace Anthem {
 			std::cout << integer->integer;
 			break;
 		}
+		case AIRNodeType::CALL: {
+			ptr<AIRFunctionCallNode> func_call = std::static_pointer_cast<AIRFunctionCallNode>(node);
+			std::cout << "result = CALL(" << func_call->function << ", [";
+			for (auto& arg : func_call->value_list) {
+				pretty_print(arg);
+				std::cout << ", ";
+			}
+			std::cout << "]\n";
+			break;
+		}
 		}
 	}
 
@@ -346,6 +356,8 @@ namespace Anthem {
 			return assignment(std::static_pointer_cast<AssignmentNode>(expression), output);
 		case NodeType::NAME_ACCESS:
 			return make_variable(std::static_pointer_cast<AccessNode>(expression)->variable_token.value);
+		case NodeType::FUNCTION_CALL:
+			return function_call(std::static_pointer_cast<FunctionCallNode>(expression), output);
 		default:
 			return nullptr;
 		}
@@ -398,6 +410,19 @@ namespace Anthem {
 		return target;
 	}
 
+	ptr<AIRValueNode> AIRGenerator::function_call(ptr<FunctionCallNode> func_call, AIRInstructionList& output) {
+		ValueList args;
+		for (auto& expr : func_call->argument_list) {
+			auto value = resolve_expression(expr, output);
+			auto var = make_variable(make_temporary_name());
+			output.push_back(set(var, value));
+			args.push_back(var);
+		}
+		auto result_var = make_variable("result");
+		output.push_back(call(func_call->variable_token.value, args, result_var));
+		return result_var;
+	}
+
 	ptr<AIRValueNode> AIRGenerator::logical_binary_operation(ptr<BinaryOperationNode> binary_op, AIRInstructionList& output) {
 		Name early_leave_label = std::format("early_leave.{0}", m_global_label_counter);
 		Name end_label = std::format("end.{0}", m_global_label_counter);
@@ -407,7 +432,6 @@ namespace Anthem {
 		// Set true to evaluate AND operation, false to evaluate OR operation
 		bool and_operation = true;
 
-		/*		if (binary_op->operator_token.type == AND) and_operation = true;	*/			// Uneeded
 		if (binary_op->operator_token.type == OR) and_operation = false;
 
 		BinaryOperation operation = BinaryOperation::AND;
@@ -472,5 +496,9 @@ namespace Anthem {
 
 	ptr<AIRJumpIfZeroInstructionNode> AIRGenerator::jump_zero(ptr<AIRValueNode> condition, const Name& label) {
 		return std::make_shared<AIRJumpIfZeroInstructionNode>(condition, label);
+	}
+
+	ptr<AIRFunctionCallNode> AIRGenerator::call(const Name& function, const ValueList& value_list, ptr<AIRValueNode> destination) {
+		return std::make_shared<AIRFunctionCallNode>(function, value_list, destination);
 	}
 }

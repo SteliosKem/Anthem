@@ -1,10 +1,9 @@
 fn main() { // Main Function
 	let a = 4;
-	other_func();
+	if a == 4 -> other_func(5);
 	return a;
 }
 
 fn other_func(var1) {
 	return var1;
 }
-

@@ -42,7 +42,7 @@ namespace Anthem {
 		ptr<AIRValueNode> unary_operation(ptr<UnaryOperationNode> unary_op, AIRInstructionList& output);
 		ptr<AIRValueNode> binary_operation(ptr<BinaryOperationNode> binary_op, AIRInstructionList& output);
 		ptr<AIRValueNode> assignment(ptr<AssignmentNode> binary_op, AIRInstructionList& output);
-
+		ptr<AIRValueNode> function_call(ptr<FunctionCallNode> func_call, AIRInstructionList& output);
 		ptr<AIRValueNode> logical_binary_operation(ptr<BinaryOperationNode> binary_op, AIRInstructionList& output);
 
 		// -- AIR Instruction Creation --
@@ -53,6 +53,7 @@ namespace Anthem {
 		ptr<AIRJumpInstructionNode> jump(const Name& label);
 		ptr<AIRJumpIfNotZeroInstructionNode> jump_not_zero(ptr<AIRValueNode> condition, const Name& label);
 		ptr<AIRJumpIfZeroInstructionNode> jump_zero(ptr<AIRValueNode> condition, const Name& label);
+		ptr<AIRFunctionCallNode> call(const Name& function, const ValueList& value_list, ptr<AIRValueNode> destination);
 	private:
 		uint32_t m_global_label_counter = 0;
 		ErrorHandler* m_error_handler;

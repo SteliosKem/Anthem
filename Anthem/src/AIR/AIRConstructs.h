@@ -26,6 +26,7 @@ namespace Anthem {
 		INTEGER,
 		VARIABLE,
 		RETURN,
+		CALL
 	};
 
 	// General Nodes
@@ -75,6 +76,7 @@ namespace Anthem {
 		AIR_NODE_TYPE(FUNCTION)
 	public:
 		Name name;
+		std::vector<Name> parameters;
 		AIRInstructionList instructions;
 	};
 
@@ -183,5 +185,19 @@ namespace Anthem {
 	public:
 		ptr<AIRVariableValueNode> variable;
 		ptr<AIRValueNode> value;
+	};
+
+	using ValueList = std::vector<ptr<AIRValueNode>>;
+
+	class AIRFunctionCallNode : public AIRInstructionNode {
+	public:
+		AIRFunctionCallNode(Name function, const ValueList& value_list, ptr<AIRValueNode> destination)
+			: function{ function }, value_list{ value_list }, destination{ destination } {}
+
+		AIR_NODE_TYPE(CALL)
+	public:
+		Name function;
+		ValueList value_list;
+		ptr<AIRValueNode> destination;
 	};
 }
