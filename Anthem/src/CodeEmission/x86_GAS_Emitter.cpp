@@ -110,6 +110,106 @@ namespace Anthem {
 				}
 				break;
 			}
+			case Register::ECX: {
+				switch (size)
+				{
+				case Anthem::Size::BYTE:
+					emit_string("%cl", false);
+					break;
+				case Anthem::Size::WORD:
+					emit_string("%ch", false);
+					break;
+				case Anthem::Size::DWORD:
+					emit_string("%ecx", false);
+					break;
+				case Anthem::Size::QWORD:
+					emit_string("%rcx", false);
+					break;
+				default:
+					break;
+				}
+				break;
+			}
+			case Register::EDI: {
+				switch (size)
+				{
+				case Anthem::Size::BYTE:
+					emit_string("%dil", false);
+					break;
+				case Anthem::Size::WORD:
+					emit_string("%dih", false);
+					break;
+				case Anthem::Size::DWORD:
+					emit_string("%edi", false);
+					break;
+				case Anthem::Size::QWORD:
+					emit_string("%rdi", false);
+					break;
+				default:
+					break;
+				}
+				break;
+			}
+			case Register::ESI: {
+				switch (size)
+				{
+				case Anthem::Size::BYTE:
+					emit_string("%sil", false);
+					break;
+				case Anthem::Size::WORD:
+					emit_string("%sih", false);
+					break;
+				case Anthem::Size::DWORD:
+					emit_string("%esi", false);
+					break;
+				case Anthem::Size::QWORD:
+					emit_string("%rsi", false);
+					break;
+				default:
+					break;
+				}
+				break;
+			}
+			case Register::R8D: {
+				switch (size)
+				{
+				case Anthem::Size::BYTE:
+					emit_string("%r8b", false);
+					break;
+				case Anthem::Size::WORD:
+					emit_string("%r8w", false);
+					break;
+				case Anthem::Size::DWORD:
+					emit_string("%r8d", false);
+					break;
+				case Anthem::Size::QWORD:
+					emit_string("%r8q", false);
+					break;
+				default:
+					break;
+				}
+				break;
+			}
+			case Register::R9D: {
+				switch (size)
+				{
+				case Anthem::Size::BYTE:
+					emit_string("%r9b", false);
+					break;
+				case Anthem::Size::WORD:
+					emit_string("%r9w", false);
+					break;
+				case Anthem::Size::DWORD:
+					emit_string("%r9d", false);
+					break;
+				case Anthem::Size::QWORD:
+					emit_string("%r9q", false);
+					break;
+				default:
+					break;
+				}
+				break;
+			}
 			case Register::R10D: {
 				switch (size)
 				{
@@ -238,6 +338,22 @@ namespace Anthem {
 
 	void x86_GAS_Emitter::emit_cdq() {
 		emit_string("cdq");
+		emit_line();
+	}
+
+	void x86_GAS_Emitter::emit_deallocate_stack(ptr<ASMDeallocateStackNode> stack_operand) {
+		emit_string(std::format("addq ${0}, %rsp", stack_operand->amount));
+		emit_line();
+	}
+
+	void x86_GAS_Emitter::emit_push_stack(ptr<ASMPushStackNode> operand) {
+		emit_string("pushq ");
+		emit_operand(operand->operand, Size::QWORD);
+		emit_line();
+	}
+
+	void x86_GAS_Emitter::emit_call(ptr<ASMCallNode> call) {
+		emit_string("call " + call->label);
 		emit_line();
 	}
 

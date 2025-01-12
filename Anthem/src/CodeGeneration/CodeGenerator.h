@@ -31,6 +31,7 @@ namespace Anthem {
 		void generate_jump_if_zero(ptr<AIRJumpIfZeroInstructionNode> jump_node, ASMInstructionList& list_output);
 		void generate_jump_if_not_zero(ptr<AIRJumpIfNotZeroInstructionNode> jump_node, ASMInstructionList& list_output);
 		void generate_label(ptr<AIRLabelNode> label_node, ASMInstructionList& list_output);
+		void generate_call(ptr<AIRFunctionCallNode> call_node, ASMInstructionList& list_output);
 
 		// -- Simple Instruction Generation -- (Create a Shared Ptr)
 
@@ -39,13 +40,21 @@ namespace Anthem {
 		ptr<CompareInstructionNode> cmp(ptr<ASMOperandNode> source, ptr<ASMOperandNode> destination);
 		ptr<SetConditionalNode> set(BinaryOperation operation, ptr<ASMOperandNode> destination);
 		ptr<IntegerOperandNode> integer(int integer);
+		ptr<StackOperandNode> stack(int amount);
 		ptr<SignExtendInstructionNode> sign_extend();
 		ptr<DivideInstructionNode> div(ptr<ASMOperandNode> operand);
+		ptr<JumpInstructionNode> jmp(const Name& label);
+		ptr<JumpConditionalNode> jmpc(BinaryOperation condition, const Name& label);
+		ptr<AllocateStackNode> stack_alloc(int amount);
+		ptr<ASMDeallocateStackNode> stack_dealloc(int amount);
+		ptr<ASMPushStackNode> push(ptr<ASMOperandNode> operand);
+		ptr<ASMCallNode> call(const Name& label);
 
 		// -- Operand Resolution and Instruction Generation --
 		ptr<ASMOperandNode> resolve_value(ptr<AIRValueNode> expression);
 
 		ptr<PseudoOperandNode> make_pseudo_register(ptr<AIRVariableValueNode> variable);
+		ptr<PseudoOperandNode> make_pseudo_register(const Name& variable);
 
 		// -- Subsequent Passes --
 

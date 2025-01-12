@@ -14,7 +14,12 @@ namespace Anthem {
 		EAX,
 		EDX,
 		R10D,
-		R11D
+		R11D,
+		ECX,
+		EDI,
+		ESI,
+		R8D,
+		R9D
 	};
 
 	enum class ASMNodeType {
@@ -46,6 +51,9 @@ namespace Anthem {
 		JUMP_CONDITIONAL,
 		SET_CONDITIONAL,
 		COMPARE,
+		DEALLOCATE_STACK,
+		PUSH,
+		CALL,
 	};
 
 	// General Nodes
@@ -255,6 +263,36 @@ namespace Anthem {
 		ASMLabelNode(const Name& label) : label{ label } {}
 
 		ASM_NODE_TYPE(LABEL)
+	public:
+		Name label;
+	};
+
+	class ASMDeallocateStackNode : public ASMInstructionNode {
+	public:
+		ASMDeallocateStackNode() = default;
+		ASMDeallocateStackNode(int amount) : amount{ amount } {}
+
+		ASM_NODE_TYPE(DEALLOCATE_STACK)
+	public:
+		int amount;
+	};
+
+	class ASMPushStackNode : public ASMInstructionNode {
+	public:
+		ASMPushStackNode() = default;
+		ASMPushStackNode(ptr<ASMOperandNode> operand) : operand{ operand } {}
+
+		ASM_NODE_TYPE(PUSH)
+	public:
+		ptr<ASMOperandNode> operand;
+	};
+
+	class ASMCallNode : public ASMInstructionNode {
+	public:
+		ASMCallNode() = default;
+		ASMCallNode(const Name& label) : label{ label } {}
+
+		ASM_NODE_TYPE(CALL)
 	public:
 		Name label;
 	};

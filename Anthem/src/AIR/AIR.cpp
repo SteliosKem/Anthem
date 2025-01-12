@@ -210,6 +210,9 @@ namespace Anthem {
 	ptr<AIRFunctionNode> AIRGenerator::generate_function_declaration(ptr<FunctionDeclarationNode> function_node) {
 		ptr<AIRFunctionNode> AIR_function_node = std::make_shared<AIRFunctionNode>();
 		AIR_function_node->name = function_node->name;
+		for (auto& name : function_node->parameters) {
+			AIR_function_node->parameters.push_back(name.name);
+		}
 		generate_statement(function_node->body, AIR_function_node->instructions);
 		// Add return 0 instruction in case function doesn't have a return statement
 		AIR_function_node->instructions.push_back(std::make_shared<AIRReturnInstructionNode>(std::make_shared<AIRIntegerValueNode>(0)));

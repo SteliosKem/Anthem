@@ -25,6 +25,9 @@ namespace Anthem {
 		virtual void emit_jump_conditional(ptr<JumpConditionalNode> conditional_jump) override;
 		virtual void emit_set_conditional(ptr<SetConditionalNode> set_conditional) override;
 		virtual void emit_cdq() override;
+		virtual void emit_deallocate_stack(ptr<ASMDeallocateStackNode> stack_operand) override;
+		virtual void emit_push_stack(ptr<ASMPushStackNode> operand) override;
+		virtual void emit_call(ptr<ASMCallNode> call) override;
 
 		virtual const std::string& assembly_out() override;
 

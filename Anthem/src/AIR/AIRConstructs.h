@@ -187,7 +187,7 @@ namespace Anthem {
 		ptr<AIRValueNode> value;
 	};
 
-	using ValueList = std::vector<ptr<AIRValueNode>>;
+	using ValueList = std::vector<ptr<AIRVariableValueNode>>;
 
 	class AIRFunctionCallNode : public AIRInstructionNode {
 	public:

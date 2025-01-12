@@ -2,6 +2,7 @@
 
 namespace Anthem {
 	// Util
+#define instr(x) list_output.push_back(x)
 	bool is_complex_binary(BinaryOperation operation) {
 		switch (operation)
 		{
@@ -47,10 +48,24 @@ namespace Anthem {
 	}
 
 	ptr<ASMFunctionNode> CodeGenerator::generate_function_declaration(ptr<AIRFunctionNode> function_node) {
+		const uint8_t registers_to_set = 6;
+		using R = Register;
+
+		Register argument_registers[registers_to_set] = { R::EDI, R::ESI, R::EDX, R::ECX, R::R8D, R::R9D };
+
 		ptr<ASMFunctionNode> asm_function_node = std::make_shared<ASMFunctionNode>();
 		asm_function_node->name = function_node->name;
 		// Push new vector for local variables
 		m_functions.push_back({ &asm_function_node->instructions });
+		for (uint32_t i = 0; i < function_node->parameters.size(); i++) {
+			if(i <= 6)
+				asm_function_node->instructions.push_back(
+					mov(std::make_shared<RegisterOperandNode>(argument_registers[i]), make_pseudo_register(function_node->parameters[i])));
+			else
+				mov(stack(16 + (i - registers_to_set) * 8), make_pseudo_register(function_node->parameters[i]));
+						// Stack access starts at 16, and for every argument after the 6th (The number of Registers used for Argument passing)
+						// access a multiple of 8 bytes after 16
+		}
 		for (auto& instruction : function_node->instructions)
 			generate_instruction(instruction, asm_function_node->instructions);
 		return asm_function_node;
@@ -82,6 +97,10 @@ namespace Anthem {
 		case AIRNodeType::SET: {
 			auto set = std::static_pointer_cast<AIRSetInstructionNode>(instruction_node);
 			list_output.push_back(mov(resolve_value(set->value), resolve_value(set->variable)));
+			return;
+		}
+		case AIRNodeType::CALL: {
+			generate_call(std::static_pointer_cast<AIRFunctionCallNode>(instruction_node), list_output);
 			return;
 		}
 		default:
@@ -194,6 +213,15 @@ namespace Anthem {
 		return pseudo;
 	}
 
+	ptr<PseudoOperandNode> CodeGenerator::make_pseudo_register(const Name& variable) {
+		ptr<PseudoOperandNode> pseudo = std::make_shared<PseudoOperandNode>(variable);
+		auto& pseudo_list = m_functions[m_functions.size() - 1].pseudo_registers;
+		if (pseudo_list.find(variable) != pseudo_list.end())
+			return pseudo_list[variable];
+		pseudo_list[variable] = pseudo;
+		return pseudo;
+	}
+
 	ptr<MoveInstructionNode> CodeGenerator::mov(ptr<ASMOperandNode> source, ptr<ASMOperandNode> destination) {
 		return std::make_shared<MoveInstructionNode>(source, destination);
 	}
@@ -214,6 +242,10 @@ namespace Anthem {
 		return std::make_shared<IntegerOperandNode>(integer);
 	}
 
+	ptr<StackOperandNode> CodeGenerator::stack(int amount) {
+		return std::make_shared<StackOperandNode>(amount);
+	}
+
 	ptr<SignExtendInstructionNode> CodeGenerator::sign_extend() {
 		return std::make_shared<SignExtendInstructionNode>();
 	}
@@ -222,28 +254,100 @@ namespace Anthem {
 		return std::make_shared<DivideInstructionNode>(operand);
 	}
 
+	ptr<ASMCallNode> CodeGenerator::call(const Name& label) {
+		return std::make_shared<ASMCallNode>(label);
+	}
+
+	ptr<JumpInstructionNode> CodeGenerator::jmp(const Name& label) {
+		return std::make_shared<JumpInstructionNode>(label);
+	}
+
+	ptr<JumpConditionalNode> CodeGenerator::jmpc(BinaryOperation condition, const Name& label) {
+		return std::make_shared<JumpConditionalNode>(condition, label);
+	}
+
+	ptr<AllocateStackNode> CodeGenerator::stack_alloc(int amount) {
+		return std::make_shared<AllocateStackNode>(amount);
+	}
+
+	ptr<ASMDeallocateStackNode> CodeGenerator::stack_dealloc(int amount) {
+		return std::make_shared<ASMDeallocateStackNode>(amount);
+	}
+
+	ptr<ASMPushStackNode> CodeGenerator::push(ptr<ASMOperandNode> operand) {
+		return std::make_shared<ASMPushStackNode>(operand);
+	}
+
 	void CodeGenerator::generate_jump(ptr<AIRJumpInstructionNode> jump_node, ASMInstructionList& list_output) {
-		list_output.push_back(std::make_shared<JumpInstructionNode>(jump_node->label));
+		list_output.push_back(jmp(jump_node->label));
 	}
 
 	void CodeGenerator::generate_jump_if_zero(ptr<AIRJumpIfZeroInstructionNode> jump_node, ASMInstructionList& list_output) {
-		list_output.push_back(std::make_shared<CompareInstructionNode>(std::make_shared<IntegerOperandNode>(0), resolve_value(jump_node->condition)));
-		list_output.push_back(std::make_shared<JumpConditionalNode>(BinaryOperation::EQUAL, jump_node->label));
+		list_output.push_back(cmp(integer(0), resolve_value(jump_node->condition)));
+		list_output.push_back(jmpc(BinaryOperation::EQUAL, jump_node->label));
 	}
 
 	void CodeGenerator::generate_jump_if_not_zero(ptr<AIRJumpIfNotZeroInstructionNode> jump_node, ASMInstructionList& list_output) {
-		list_output.push_back(std::make_shared<CompareInstructionNode>(std::make_shared<IntegerOperandNode>(0), resolve_value(jump_node->condition)));
-		list_output.push_back(std::make_shared<JumpConditionalNode>(BinaryOperation::NOT_EQUAL, jump_node->label));
+		list_output.push_back(cmp(integer(0), resolve_value(jump_node->condition)));
+		list_output.push_back(jmpc(BinaryOperation::NOT_EQUAL, jump_node->label));
 	}
 
 	void CodeGenerator::generate_label(ptr<AIRLabelNode> label_node, ASMInstructionList& list_output) {
 		list_output.push_back(std::make_shared<ASMLabelNode>(label_node->label));
 	}
 
+	void CodeGenerator::generate_call(ptr<AIRFunctionCallNode> call_node, ASMInstructionList& list_output) {
+		const uint8_t registers_to_set = 6;
+		using R = Register;
+
+		Register argument_registers[registers_to_set] = { R::EDI, R::ESI, R::EDX, R::ECX, R::R8D, R::R9D };
+		uint32_t args_size = call_node->value_list.size();
+		uint32_t stack_argument_size = args_size - registers_to_set;
+		if (stack_argument_size < 0) stack_argument_size = 0;
+
+		// Padding to adjust stack alignment for calling convention
+		int8_t stack_padding = (args_size % 2 == 0 ? 0 : 8);
+		if (!stack_padding) list_output.push_back(stack_alloc(stack_padding));
+
+		uint32_t register_index = 0;
+
+		// Pass Arguments first to registers
+		for (uint8_t i = 0; i < args_size && i < registers_to_set; i++) {
+			R reg = argument_registers[i];
+			auto assembly_arg = resolve_value(call_node->value_list[i]);
+			list_output.push_back(mov(assembly_arg, std::make_shared<RegisterOperandNode>(reg)));
+		}
+
+		// Push any remaining Arguments to the stack
+		for (uint8_t i = registers_to_set; i < args_size; i++) {
+			auto assembly_arg = resolve_value(call_node->value_list[i]);
+			if(assembly_arg->get_type() == ASMNodeType::REGISTER || assembly_arg->get_type() == ASMNodeType::INTEGER)
+				list_output.push_back(push(assembly_arg));
+			else {
+				list_output.push_back(mov(assembly_arg, REGISTER(EAX)));
+				list_output.push_back(push(REGISTER(EAX)));
+			}
+		}
+
+		list_output.push_back(call(call_node->function));
+
+		// Adjust SP (Stack Pointer)
+		uint32_t bytes_to_remove = 8 * stack_argument_size + stack_padding;
+		if (bytes_to_remove) list_output.push_back(stack_dealloc(bytes_to_remove));
+
+		auto assembly_dest = resolve_value(call_node->destination);
+		list_output.push_back(mov(REGISTER(EAX), assembly_dest));
+	}
+
 	void CodeGenerator::replace_pseudo_registers() {
 		for (auto& function : m_functions) {
 			// Allocate Stack Size 4 times the pseudo registers the function has (each one is 4 bytes)
-			function.instructions->push_front(std::make_shared<AllocateStackNode>(function.pseudo_registers.size() * 4));
+			uint64_t to_allocate = function.pseudo_registers.size() * 4;
+			// And round it up to nearest multiple of 16
+			uint8_t remainder = to_allocate % 16;
+			to_allocate += 16 - remainder;
+
+			function.instructions->push_front(std::make_shared<AllocateStackNode>(to_allocate));
 			int offset = -4;
 			for (auto& [name, pointer] : function.pseudo_registers) {
 				pointer->stack_offset = offset;

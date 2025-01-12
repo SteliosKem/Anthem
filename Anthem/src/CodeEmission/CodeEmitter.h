@@ -43,6 +43,9 @@ namespace Anthem {
 		virtual void emit_cdq() = 0;
 		virtual void emit_stack_access(int offset) = 0;
 		virtual void emit_allocate_stack(ptr<AllocateStackNode> stack_operand) = 0;
+		virtual void emit_deallocate_stack(ptr<ASMDeallocateStackNode> stack_operand) = 0;
+		virtual void emit_push_stack(ptr<ASMPushStackNode> operand) = 0;
+		virtual void emit_call(ptr<ASMCallNode> call) = 0;
 		virtual const std::string& assembly_out() = 0;
 	};
 }

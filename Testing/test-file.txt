@@ -1,9 +1,11 @@
-fn main() { // Main Function
-	let a = 4;
-	if a == 4 -> other_func(5);
-	return a;
+fn other_func(var1, var2) {
+	return var1 - var2;
 }
 
-fn other_func(var1) {
-	return var1;
+fn main() { // Main Function
+	let a = 7;
+	let b = 6;
+
+	//if(b == 1) -> return other_func(2);
+	return other_func(b, a);
 }

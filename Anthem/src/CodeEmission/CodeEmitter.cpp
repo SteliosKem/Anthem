@@ -91,6 +91,15 @@ namespace Anthem {
 		case ASMNodeType::SIGN_EXTEND:
 			emit_cdq();
 			break;
+		case ASMNodeType::DEALLOCATE_STACK:
+			emit_deallocate_stack(std::static_pointer_cast<ASMDeallocateStackNode>(instruction));
+			break;
+		case ASMNodeType::PUSH:
+			emit_push_stack(std::static_pointer_cast<ASMPushStackNode>(instruction));
+			break;
+		case ASMNodeType::CALL:
+			emit_call(std::static_pointer_cast<ASMCallNode>(instruction));
+			break;
 		default:
 			return;
 		}
