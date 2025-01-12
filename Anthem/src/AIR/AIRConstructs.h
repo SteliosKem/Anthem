@@ -15,6 +15,7 @@ namespace Anthem {
 		DECLARATION,
 
 		FUNCTION,
+		EXTERNAL_DECL,
 
 		UNARY_OPERATION,
 		BINARY_OPERATION,
@@ -191,13 +192,14 @@ namespace Anthem {
 
 	class AIRFunctionCallNode : public AIRInstructionNode {
 	public:
-		AIRFunctionCallNode(Name function, const ValueList& value_list, ptr<AIRValueNode> destination)
-			: function{ function }, value_list{ value_list }, destination{ destination } {}
+		AIRFunctionCallNode(Name function, const ValueList& value_list, ptr<AIRValueNode> destination, bool is_external)
+			: function{ function }, value_list{ value_list }, destination{ destination }, is_external{ is_external } {}
 
 		AIR_NODE_TYPE(CALL)
 	public:
 		Name function;
 		ValueList value_list;
 		ptr<AIRValueNode> destination;
+		bool is_external;
 	};
 }

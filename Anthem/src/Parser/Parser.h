@@ -48,6 +48,7 @@ namespace Anthem {
 		ptr<DeclarationNode> parse_declaration();
 		ptr<DeclarationNode> parse_function_declaration();
 		ptr<DeclarationNode> parse_variable_declaration();
+		ptr<DeclarationNode> parse_external();
 
 		// Statement Parsing
 
@@ -59,7 +60,7 @@ namespace Anthem {
 		ptr<WhileStatementNode> parse_while_statement();
 		ptr<LoopStatementNode> parse_loop_statement();
 		ptr<ForStatementNode> parse_for_statement();
-
+		
 		// Expression Parsing
 
 		ptr<ExpressionNode> parse_expression(uint8_t mininum_precedence = 0);

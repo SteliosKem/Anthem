@@ -20,6 +20,16 @@ namespace Anthem {
 
 			m_symbol_table[function->name] = func_type;
 		}
+		else if (declaration->get_type() == NodeType::EXTERNAL_DECLARATION) {
+			auto function = std::static_pointer_cast<ExternalNode>(declaration);
+			FunctionType func_type;
+			func_type.is_external = true;
+			func_type.return_type = VarType::I32;
+			for (auto& parameter : function->parameters)
+				func_type.parameters.push_back(VarType::I32);
+
+			m_symbol_table[function->name] = func_type;
+		}
 	}
 
 	void TypeChecker::check_declaration(ptr<DeclarationNode> declaration) {
@@ -126,6 +136,8 @@ namespace Anthem {
 			for (auto& arg : call->argument_list) {
 				check_expression(arg);
 			}
+			if (function_type.is_external)
+				call->is_external = true;
 			break;
 		}
 		default:

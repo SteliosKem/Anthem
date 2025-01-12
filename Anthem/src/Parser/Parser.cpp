@@ -95,6 +95,15 @@ namespace Anthem {
 				std::cout << padding << ")\n";
 				break;
 			}
+			case NodeType::EXTERNAL_DECLARATION: {
+				ptr<ExternalNode> external_node = std::static_pointer_cast<ExternalNode>(node);
+				std::cout << padding << "External Function " << external_node->name << " (";
+				for (auto& i : external_node->parameters) {
+					std::cout << i.name << ", ";
+				}
+				std::cout << ")\n";
+				break;
+			}
 			case NodeType::RETURN_STATEMENT: {
 				ptr<ReturnStatementNode> return_node = std::static_pointer_cast<ReturnStatementNode>(node);
 				std::cout << padding << "Return ";
@@ -286,8 +295,10 @@ namespace Anthem {
 
 	ptr<DeclarationNode> Parser::parse_declaration() {
 		//if (match(FUNCTION)) <-- Will be used when global variable declarations are added
-		if(consume(FUNCTION, "Expected Function Declaration"))
+		if(match(FUNCTION))
 			return parse_function_declaration();
+		else if (match(EXTERNAL))
+			return parse_external();
 		return nullptr;
 	}
 
@@ -318,6 +329,34 @@ namespace Anthem {
 		ptr<StatementNode> body = parse_statement();
 
 		return std::make_shared<FunctionDeclarationNode>(identifier.value, body, parameter_list);
+	}
+
+	ptr<DeclarationNode> Parser::parse_external() {
+		// Save identifier
+		Token identifier = current_token();
+		if (!consume(IDENTIFIER, "Expected Function Identifier")) return nullptr;
+
+		// Handle Arguments
+		if (!consume(LEFT_PARENTHESIS, "Expected '('")) return nullptr;
+		std::vector<Parameter> parameter_list;
+
+		while (!is_current(RIGHT_PARENTHESIS) && !is_current(SPECIAL_EOF)) {
+			Token current_tok = current_token();
+			consume(IDENTIFIER, "Expected Parameter Name");
+
+			parameter_list.push_back({ current_tok.value });
+
+			if (is_current(COMMA))
+				advance();
+			else
+				break;
+		}
+
+		if (!consume(RIGHT_PARENTHESIS, "Expected ')'")) return nullptr;
+
+		CONSUME_SEMICOLON();
+
+		return std::make_shared<ExternalNode>(identifier.value, parameter_list, VarType::I32);
 	}
 
 	ptr<DeclarationNode> Parser::parse_variable_declaration() {

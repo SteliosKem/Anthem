@@ -19,6 +19,7 @@ namespace Anthem {
 
 		PROGRAM,
 		FUNCTION_DECLARATION,
+		EXTERNAL_DECLARATION,
 		
 		// Expressions
 			UNARY_OPERATION,
@@ -41,6 +42,7 @@ namespace Anthem {
 			FOR_STATEMENT,
 			BREAK_STATEMENT,
 			CONTINUE_STATEMENT,
+			
 	};
 
 	// General Nodes
@@ -94,6 +96,18 @@ namespace Anthem {
 		Name name;
 		std::vector<Parameter> parameters;
 		ptr<StatementNode> body;
+		Type return_type;
+	};
+
+	class ExternalNode : public DeclarationNode {
+	public:
+		ExternalNode(const Name& name, const std::vector<Parameter>& parameters, Type type = VarType::I32)
+			: name{ name }, parameters{ parameters }, return_type{ type } {}
+
+		NODE_TYPE(EXTERNAL_DECLARATION)
+	public:
+		Name name;
+		std::vector<Parameter> parameters;
 		Type return_type;
 	};
 
@@ -175,6 +189,7 @@ namespace Anthem {
 	public:
 		Token variable_token;
 		ArgList argument_list;
+		bool is_external = false;
 	};
 
 	// Statement Nodes

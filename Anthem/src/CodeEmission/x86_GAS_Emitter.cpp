@@ -353,7 +353,7 @@ namespace Anthem {
 	}
 
 	void x86_GAS_Emitter::emit_call(ptr<ASMCallNode> call) {
-		emit_string("call " + call->label);
+		emit_string("call " + call->label + (call->is_external ? "@PLT" : ""));
 		emit_line();
 	}
 

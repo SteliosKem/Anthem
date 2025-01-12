@@ -179,8 +179,11 @@ namespace Anthem {
 		ptr<AIRProgramNode> AIR_program_node = std::make_shared<AIRProgramNode>();
 
 		// Generate AIR Declarations from every one of the AST Program Node
-		for (auto& declaration : program_node->declarations)
-			AIR_program_node->declarations.push_back(generate_declaration(declaration));
+		for (auto& declaration : program_node->declarations) {
+			auto decl = generate_declaration(declaration);
+			if(decl)
+				AIR_program_node->declarations.push_back(decl);
+		}
 
 		return AIR_program_node;
 	}
@@ -422,7 +425,7 @@ namespace Anthem {
 			args.push_back(var);
 		}
 		auto result_var = make_variable("result");
-		output.push_back(call(func_call->variable_token.value, args, result_var));
+		output.push_back(call(func_call->variable_token.value, args, result_var, func_call->is_external));
 		return result_var;
 	}
 
@@ -501,7 +504,7 @@ namespace Anthem {
 		return std::make_shared<AIRJumpIfZeroInstructionNode>(condition, label);
 	}
 
-	ptr<AIRFunctionCallNode> AIRGenerator::call(const Name& function, const ValueList& value_list, ptr<AIRValueNode> destination) {
-		return std::make_shared<AIRFunctionCallNode>(function, value_list, destination);
+	ptr<AIRFunctionCallNode> AIRGenerator::call(const Name& function, const ValueList& value_list, ptr<AIRValueNode> destination, bool is_external) {
+		return std::make_shared<AIRFunctionCallNode>(function, value_list, destination, is_external);
 	}
 }

@@ -53,7 +53,7 @@ namespace Anthem {
 		ptr<AIRJumpInstructionNode> jump(const Name& label);
 		ptr<AIRJumpIfNotZeroInstructionNode> jump_not_zero(ptr<AIRValueNode> condition, const Name& label);
 		ptr<AIRJumpIfZeroInstructionNode> jump_zero(ptr<AIRValueNode> condition, const Name& label);
-		ptr<AIRFunctionCallNode> call(const Name& function, const ValueList& value_list, ptr<AIRValueNode> destination);
+		ptr<AIRFunctionCallNode> call(const Name& function, const ValueList& value_list, ptr<AIRValueNode> destination, bool is_external = false);
 	private:
 		uint32_t m_global_label_counter = 0;
 		ErrorHandler* m_error_handler;

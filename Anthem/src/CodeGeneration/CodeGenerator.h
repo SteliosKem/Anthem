@@ -48,7 +48,7 @@ namespace Anthem {
 		ptr<AllocateStackNode> stack_alloc(int amount);
 		ptr<ASMDeallocateStackNode> stack_dealloc(int amount);
 		ptr<ASMPushStackNode> push(ptr<ASMOperandNode> operand);
-		ptr<ASMCallNode> call(const Name& label);
+		ptr<ASMCallNode> call(const Name& label, bool is_external = false);
 
 		// -- Operand Resolution and Instruction Generation --
 		ptr<ASMOperandNode> resolve_value(ptr<AIRValueNode> expression);

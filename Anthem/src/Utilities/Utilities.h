@@ -15,6 +15,7 @@ namespace Anthem {
 	struct FunctionType {
 		VarType return_type = VarType::I32;
 		std::vector<VarType> parameters;
+		bool is_external = false;
 	};
 
 	using Type = std::variant<VarType, FunctionType>;

@@ -290,10 +290,11 @@ namespace Anthem {
 	class ASMCallNode : public ASMInstructionNode {
 	public:
 		ASMCallNode() = default;
-		ASMCallNode(const Name& label) : label{ label } {}
+		ASMCallNode(const Name& label, bool is_external) : label{ label }, is_external{ is_external } {}
 
 		ASM_NODE_TYPE(CALL)
 	public:
 		Name label;
+		bool is_external;
 	};
 }

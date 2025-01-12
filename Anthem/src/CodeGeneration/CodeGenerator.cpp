@@ -254,8 +254,8 @@ namespace Anthem {
 		return std::make_shared<DivideInstructionNode>(operand);
 	}
 
-	ptr<ASMCallNode> CodeGenerator::call(const Name& label) {
-		return std::make_shared<ASMCallNode>(label);
+	ptr<ASMCallNode> CodeGenerator::call(const Name& label, bool is_external) {
+		return std::make_shared<ASMCallNode>(label, is_external);
 	}
 
 	ptr<JumpInstructionNode> CodeGenerator::jmp(const Name& label) {
@@ -329,7 +329,7 @@ namespace Anthem {
 			}
 		}
 
-		list_output.push_back(call(call_node->function));
+		list_output.push_back(call(call_node->function, call_node->is_external));
 
 		// Adjust SP (Stack Pointer)
 		uint32_t bytes_to_remove = 8 * stack_argument_size + stack_padding;

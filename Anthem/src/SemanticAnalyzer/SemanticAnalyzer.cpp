@@ -98,6 +98,12 @@ namespace Anthem {
 			}
 			break;
 		}
+		case NodeType::EXTERNAL_DECLARATION: {
+			ptr<ExternalNode> external = std::static_pointer_cast<ExternalNode>(declaration_node);
+
+			m_global_map[external->name] = external->name;
+			break;
+		}
 		default:
 			break;
 		}
