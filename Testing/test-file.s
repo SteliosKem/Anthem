@@ -4,7 +4,7 @@ main:
 	movq %rsp, %rbp
 	subq $32, %rsp
 	movl $7, -4(%rbp)
-	movl $6, -12(%rbp)
+	movl $60, -12(%rbp)
 	movl $72, -16(%rbp)
 .Lloop.0:
 	cmpl $100, -16(%rbp)
@@ -12,7 +12,7 @@ main:
 	setl -20(%rbp)
 	cmpl $0, -20(%rbp)
 	je .Lexit.0
-	movl -16(%rbp), %r10d
+	movl -12(%rbp), %r10d
 	movl %r10d, -8(%rbp)
 	movl -8(%rbp), %edi
 	call putchar@PLT

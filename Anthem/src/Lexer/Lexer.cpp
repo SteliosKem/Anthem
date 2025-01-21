@@ -188,7 +188,7 @@ namespace Anthem {
 			}
 		}
 
-		position.src_end_index = m_current_source_index;
+		position.src_end_index = m_current_source_index - 1;
 
 		return is_floating_point ? Token{ TYPE_F32, number_value, position } : Token{ TYPE_I32, number_value, position };
 	}

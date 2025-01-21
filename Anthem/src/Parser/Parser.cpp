@@ -252,7 +252,7 @@ namespace Anthem {
 
 	bool Parser::consume(TokenType token_type, const std::string& error_message) {
 		if (match(token_type)) return true;
-		report_error(error_message + ", Got " + current_token().value + " Token");
+		report_error(error_message + ", got " + current_token().value + " Token");
 		return false;
 	}
 
