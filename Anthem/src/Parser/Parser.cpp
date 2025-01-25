@@ -271,10 +271,23 @@ namespace Anthem {
 	void Parser::report_error(const std::string& error_message) {
 		m_error_handler->report_error(Error{ error_message, current_token().position });
 		m_error_occured = true;
+		stabilize();
 	}
 
 	void Parser::stabilize() {
-		// TO-DO
+		//m_error_occured = false;
+
+		while (current_token().type != TokenType::SPECIAL_EOF) {
+			const Token& tok = current_token();
+			if (tok.type == TokenType::SEMICOLON) {
+				advance();
+				return;
+			}
+			if (tok.value == "if" || tok.value == "fn" || tok.value == "let"
+				|| tok.value == "while" || tok.value == "for" || tok.value == "loop" || tok.type == TokenType::LEFT_BRACE)
+				return;
+			advance();
+		}
 	}
 
 	ptr<ProgramNode> Parser::parse_program() {

@@ -6,8 +6,8 @@ fn main() { // Main Function
 
 	//if(b == 1) -> return other_func(2);
 	let i = 72;
-let 345 = 2;
-while i < 100 {
+        let a. = 2;
+        while i < 100 {
 		putchar(b);
 		i = i + 1;
 	}
