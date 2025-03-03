@@ -1,8 +1,12 @@
+// Parser.h
+// Contains the Parser Class method implementations
+// Copyright (c) 2024-present, Stylianos Kementzetzidis
+
 #include "Parser.h"
 #include <iostream>
 
 namespace Anthem {
-	// Small Utility
+	// Simple Utility
 	bool is_binary_operator(Token tok) {
 		switch (tok.type)
 		{
@@ -26,6 +30,7 @@ namespace Anthem {
 		}
 	}
 
+	// Operator precedence, higher precedence = will get resolved first
 	uint8_t get_precedence(TokenType token_type) {
 		switch (token_type)
 		{
@@ -275,10 +280,10 @@ namespace Anthem {
 	}
 
 	void Parser::stabilize() {
-		//m_error_occured = false;
-
 		while (current_token().type != TokenType::SPECIAL_EOF) {
 			const Token& tok = current_token();
+
+			// Stop skipping tokens if a semicolon or certain keyword is found
 			if (tok.type == TokenType::SEMICOLON) {
 				advance();
 				return;
@@ -307,7 +312,6 @@ namespace Anthem {
 	}
 
 	ptr<DeclarationNode> Parser::parse_declaration() {
-		//if (match(FUNCTION)) <-- Will be used when global variable declarations are added
 		if(match(FUNCTION))
 			return parse_function_declaration();
 		else if (match(EXTERNAL))

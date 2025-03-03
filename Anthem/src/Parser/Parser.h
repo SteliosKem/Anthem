@@ -1,3 +1,7 @@
+// Parser.h
+// Contains the Parser Class definition
+// Copyright (c) 2024-present, Stylianos Kementzetzidis
+
 #pragma once
 #include "Utilities/Error.h"
 #include "ASTNodes.h"
@@ -27,9 +31,11 @@ namespace Anthem {
 
 		// Return true and advance if current token matches the specified type
 		bool match(TokenType token_type);
+
+		// Return true if current token matches the specified type
 		bool is_current(TokenType token_type) const;
 
-		// Called if an error occurs, skips Tokens in order to get to an Error-free state
+		// Called if an error occurs, skips Tokens in order to get to an Error-Free state
 		void stabilize();
 
 		// Error Handling

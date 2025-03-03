@@ -1,3 +1,7 @@
+// ASTNodes.h
+// Contains Class definitions for the Parser Abstract Syntax Tree Nodes
+// Copyright (c) 2024-present, Stylianos Kementzetzidis
+
 #pragma once
 #include "Utilities/Utilities.h"
 #include "Lexer/Token.h"
@@ -80,8 +84,8 @@ namespace Anthem {
 	};
 
 	struct Parameter {
-		Name name;
-		ptr<ExpressionNode> default_value = nullptr;
+		Name name{ "" };
+		ptr<ExpressionNode> default_value{ nullptr };
 	};
 
 	// Declaration Nodes
@@ -253,6 +257,8 @@ namespace Anthem {
 		NODE_TYPE(LOOP_STATEMENT)
 	public:
 		ptr<StatementNode> body;
+
+		// ID will be provided in the semantic analysis pass
 		uint64_t id;
 	};
 
@@ -265,6 +271,8 @@ namespace Anthem {
 	public:
 		ptr<ExpressionNode> condition;
 		ptr<StatementNode> body;
+
+		// ID will be provided in the semantic analysis pass
 		uint64_t id;
 	};
 
@@ -280,6 +288,8 @@ namespace Anthem {
 		ptr<ExpressionNode> post_loop;
 		ptr<ExpressionNode> condition;
 		ptr<StatementNode> body;
+
+		// ID will be provided in the semantic analysis pass
 		uint64_t id;
 	};
 
