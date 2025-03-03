@@ -1,3 +1,7 @@
+// Token.h
+// Contains Token related type definitions and functionality
+// Copyright (c) 2024-present, Stylianos Kementzetzidis
+
 #pragma once
 #include <string>
 #include <filesystem>
@@ -115,25 +119,25 @@ namespace Anthem {
 	};
 
 	const std::unordered_map<std::string, TokenType> keyword_map = {
-		{ "let"		, LET	},
-		{ "and"		, AND	},
-		{ "or"		, OR	},
-		{ "true"	, TRUE	},
-		{ "false"	, FALSE	},
-		{ "if"		, IF	},
-		{ "else"	, ELSE	},
-		{ "while"	, WHILE	},
-		{ "loop"	, LOOP	},
-		{ "for"		, FOR	},
+		{ "let"		, LET		},
+		{ "and"		, AND		},
+		{ "or"		, OR		},
+		{ "true"	, TRUE		},
+		{ "false"	, FALSE		},
+		{ "if"		, IF		},
+		{ "else"	, ELSE		},
+		{ "while"	, WHILE		},
+		{ "loop"	, LOOP		},
+		{ "for"		, FOR		},
 		{ "return"	, RETURN	},
 		{ "fn"		, FUNCTION	},
 		{ "external", EXTERNAL	},
-		{ "do"		, DO	},
-		{ "break"	, BREAK	},
+		{ "do"		, DO		},
+		{ "break"	, BREAK		},
 		{ "continue", CONTINUE	},
-		{ "class"	, CLASS	},
-		{ "this"	, THIS	},
-		{ "enum"	, ENUM	},
+		{ "class"	, CLASS		},
+		{ "this"	, THIS		},
+		{ "enum"	, ENUM		},
 		{ "i8"		, KEY_I8	},
 		{ "i16"		, KEY_I16	},
 		{ "i32"		, KEY_I32	},
@@ -143,6 +147,7 @@ namespace Anthem {
 		{ "bool"	, KEY_BOOL	},
 	};
 
+	// Get Keyword TokenType from string if it exists
 	inline TokenType get_keyword(const std::string& name) {
 		if (keyword_map.find(name) != keyword_map.end())
 			return keyword_map.at(name);

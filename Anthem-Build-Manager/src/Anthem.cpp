@@ -57,7 +57,6 @@ int main(int argc, char* argv[]) {
 					std::cout << "\n";
 
 
-
 					Anthem::AIRGenerator air_gen(&error_handler);
 					Anthem::ptr<Anthem::AIRProgramNode> air_node = air_gen.generate(program_node);
 					std::cout << "\nAIR Output:\n";

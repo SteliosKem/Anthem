@@ -1,3 +1,7 @@
+// Lexer.cpp
+// Contains the Lexer Class method implementations
+// Copyright (c) 2024-present, Stylianos Kementzetzidis
+
 #include "Lexer.h"
 #include <iostream>
 
@@ -13,10 +17,13 @@ namespace Anthem {
 	}
 
 	void Lexer::pretty_print(const std::vector<Token>& tokens) {
+		// Pretty prints in this format: "<Line>     | <TokenType>     | <TokenValue>"
 		std::cout << "Line:\t  TokenType:\t  Value:\n";
+		
+		// First line is set to an impossible number in order to be updated immediately at the start of the loop
 		int current_line = -1;
 		for (auto& token : tokens) {
-			// Output 'Repeating' Symbol if the line did not change from the previous token
+			// Output 'Repeating' Symbol '|' if the line did not change since the previous token
 			if (token.position.src_line != current_line) {
 				current_line = token.position.src_line;
 				std::cout << current_line;
@@ -156,7 +163,7 @@ namespace Anthem {
 			break;
 		}
 
-		// If this part of the code reached then current character matches is unknown, report an error
+		// If this part of the code is reached, then the current character does not match any known one, report an error
 		m_error_handler->report_error(Error{ std::format("Unkown Character '{0}'", current_character()), position });
 		return Token{SPECIAL_ERROR, "", position};
 	}
@@ -217,11 +224,13 @@ namespace Anthem {
 	}
 
 	const std::vector<Token>& Lexer::analyze(const std::string& source, const std::filesystem::path& file_path) {
+		// Reset internal values
 		m_current_source_index = -1;
 		m_source_code = source;
 		m_current_line = 0;
 		m_current_position.src_file_path = file_path;
 		m_tokens.clear();
+
 		advance();
 
 		// Lex until End of File
