@@ -1,3 +1,7 @@
+// AIR.cpp
+// Contains the AIRGenerator Class method implementations
+// Copyright (c) 2024-present, Stylianos Kementzetzidis
+
 #include "AIR.h"
 #include <iostream>
 

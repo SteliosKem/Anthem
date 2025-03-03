@@ -1,3 +1,7 @@
+// AIR.h
+// Contains the AIRGenerator Class definition
+// Copyright (c) 2024-present, Stylianos Kementzetzidis
+
 #pragma once
 #include "Parser/Parser.h"
 #include "AIRConstructs.h"
@@ -7,7 +11,7 @@ namespace Anthem {
 	public:
 		AIRGenerator(ErrorHandler* error_handler);
 
-		// Generate an ASM Program Tree from and AST
+		// Generate an AIR Program Tree from parser AST
 		ptr<AIRProgramNode> generate(ptr<ProgramNode> program);
 
 		static void pretty_print(ptr<AIRNode> program_node);
@@ -15,9 +19,10 @@ namespace Anthem {
 		Name make_temporary_name();
 		ptr<AIRVariableValueNode> make_variable(Name name);
 
-		// Create ASM Program from AST Program Node
+		// Create AIR Program from parser AST Program Node
 		ptr<AIRProgramNode> generate_program(ptr<ProgramNode> program_node);
-		// Create an ASM Declaration (Function or Global Variable) Node from AST Declaration Node
+
+		// Create an AIR Declaration (Function or Global Variable) Node from AST Declaration Node
 		ptr<AIRDeclarationNode> generate_declaration(ptr<DeclarationNode> declaration_node, AIRInstructionList* output_optional = nullptr);
 
 		// -- Declaration Generation --
@@ -55,8 +60,8 @@ namespace Anthem {
 		ptr<AIRJumpIfZeroInstructionNode> jump_zero(ptr<AIRValueNode> condition, const Name& label);
 		ptr<AIRFunctionCallNode> call(const Name& function, const ValueList& value_list, ptr<AIRValueNode> destination, bool is_external = false);
 	private:
-		uint32_t m_global_label_counter = 0;
-		ErrorHandler* m_error_handler;
-		int m_temp_counter = 0;
+		uint32_t m_global_label_counter{ 0 };
+		ErrorHandler* m_error_handler{ nullptr };
+		int m_temp_counter{ 0 };
 	};
 }
