@@ -1,3 +1,7 @@
+// TypeChecker.h
+// Contains the TypeChecker Class definition
+// Copyright (c) 2024-present, Stylianos Kementzetzidis
+
 #pragma once
 #include <unordered_map>
 #include "Utilities/Utilities.h"
@@ -11,6 +15,7 @@ namespace Anthem {
 	public:
 		TypeChecker(ErrorHandler* error_handler);
 
+		// Type Check an AST
 		void check(ptr<ProgramNode> program);
 
 	private:
@@ -18,6 +23,7 @@ namespace Anthem {
 		void check_statement(ptr<StatementNode> statement);
 		void check_expression(ptr<ExpressionNode> expression);
 
+		// Add function to the symbol table
 		void track_function(ptr<DeclarationNode> declaration);
 	private:
 		SymbolTable m_symbol_table;

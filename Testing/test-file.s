@@ -1,3 +1,13 @@
+.globl a
+a:
+	pushq %rbp
+	movq %rsp, %rbp
+	subq $16, %rsp
+	movl $0, %eax
+	movq %rbp, %rsp
+	popq %rbp
+	ret
+
 .globl main
 main:
 	pushq %rbp
@@ -25,6 +35,10 @@ main:
 	movl %r10d, -16(%rbp)
 	jmp .Lloop.0
 .Lexit.0:
+	subq $0, %rsp
+	call a
+	addq $-48, %rsp
+	movl %eax, -24(%rbp)
 	movl $0, %eax
 	movq %rbp, %rsp
 	popq %rbp

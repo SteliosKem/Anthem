@@ -1,3 +1,7 @@
+// SemanticAnalyzer.cpp
+// Contains the SemanticAnalyzer Class method implementations
+// Copyright (c) 2024-present, Stylianos Kementzetzidis
+
 #include "SemanticAnalyzer.h"
 
 namespace Anthem {

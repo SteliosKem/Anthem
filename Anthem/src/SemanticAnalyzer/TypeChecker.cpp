@@ -1,3 +1,7 @@
+// TypeChecker.cpp
+// Contains the TypeChecker Class method implementations
+// Copyright (c) 2024-present, Stylianos Kementzetzidis
+
 #include "TypeChecker.h"
 
 namespace Anthem {
@@ -14,10 +18,13 @@ namespace Anthem {
 		if(declaration->get_type() == NodeType::FUNCTION_DECLARATION) {
 			auto function = std::static_pointer_cast<FunctionDeclarationNode>(declaration);
 			FunctionType func_type;
+
+			// Only 32 bit integer types for now
 			func_type.return_type = VarType::I32;
 			for (auto& parameter : function->parameters)
 				func_type.parameters.push_back(VarType::I32);
 
+			// Add the function to the symbol table
 			m_symbol_table[function->name] = func_type;
 		}
 		else if (declaration->get_type() == NodeType::EXTERNAL_DECLARATION) {
@@ -28,6 +35,7 @@ namespace Anthem {
 			for (auto& parameter : function->parameters)
 				func_type.parameters.push_back(VarType::I32);
 
+			// Add the external function to the symbol table
 			m_symbol_table[function->name] = func_type;
 		}
 	}
@@ -37,6 +45,8 @@ namespace Anthem {
 		{
 		case NodeType::VARIABLE: {
 			auto variable = std::static_pointer_cast<VariableNode>(declaration);
+
+			// Only 32 bit integer types for now
 			m_symbol_table[variable->variable_token.value] = VarType::I32;
 			if (variable->expression)
 				check_expression(variable->expression);
@@ -108,6 +118,7 @@ namespace Anthem {
 	void TypeChecker::check_expression(ptr<ExpressionNode> expression) {
 		switch (expression->get_type())
 		{
+		// Type check subexpressions
 		case NodeType::UNARY_OPERATION: {
 			ptr<UnaryOperationNode> unary = std::static_pointer_cast<UnaryOperationNode>(expression);
 			check_expression(unary->expression);
@@ -129,13 +140,21 @@ namespace Anthem {
 			break;
 		case NodeType::FUNCTION_CALL: {
 			ptr<FunctionCallNode> call = std::static_pointer_cast<FunctionCallNode>(expression);
+
+			// Get the function type object of the called function from the symbol table
 			auto& function_type = std::get<FunctionType>(m_symbol_table[call->variable_token.value]);
+
+			// If the number of arguments don't match the number of parameters throw an error
 			if (call->argument_list.size() != function_type.parameters.size())
 				m_error_handler->report_error(Error{ std::format("Function call '{0}' expected {1} arguments but got {2}"
 					, call->variable_token.value, function_type.parameters.size(), call->argument_list.size())});
+
+			// Type check arguments
 			for (auto& arg : call->argument_list) {
 				check_expression(arg);
 			}
+
+			// Set external status
 			if (function_type.is_external)
 				call->is_external = true;
 			break;
