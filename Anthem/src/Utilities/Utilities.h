@@ -26,6 +26,12 @@ namespace Anthem {
 		NOT,
 		NONE
 	};
+	
+	enum class VarFlag {
+		Local,
+		Global,
+		Internal,
+	};
 
 	enum class BinaryOperation {
 		// -- Arithmetic --

@@ -312,10 +312,20 @@ namespace Anthem {
 	}
 
 	ptr<DeclarationNode> Parser::parse_declaration() {
-		if(match(FUNCTION))
+		switch (current_token().type) {
+		case FUNCTION:
+			advance();
 			return parse_function_declaration();
-		else if (match(EXTERNAL))
+		case EXTERNAL:
+			advance();
 			return parse_external();
+		case INTERNAL:
+			return parse_variable_declaration();
+		case GLOBAL:
+			return parse_variable_declaration();
+		default:
+			report_error("Expected a declaration");
+		}
 		return nullptr;
 	}
 
@@ -376,10 +386,10 @@ namespace Anthem {
 		return std::make_shared<ExternalNode>(identifier.value, parameter_list, VarType::I32);
 	}
 
-	ptr<DeclarationNode> Parser::parse_variable_declaration() {
+	ptr<DeclarationNode> Parser::parse_variable_declaration(VarFlag flag) {
 		advance();
 		Token identifier_token = current_token();
-		consume(IDENTIFIER, "Expected identifier after 'let'");
+		consume(IDENTIFIER, "Expected identifier");
 		ptr<VariableNode> variable = nullptr;
 		/*
 		* Will be added when more types are implemented
@@ -391,6 +401,8 @@ namespace Anthem {
 			variable = std::make_shared<VariableNode>(identifier_token, VarType::I32, parse_expression());
 		else
 			variable = std::make_shared<VariableNode>(identifier_token, VarType::I32);
+
+		variable->flag = flag;
 
 		CONSUME_SEMICOLON();
 

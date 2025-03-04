@@ -117,14 +117,15 @@ namespace Anthem {
 
 	class VariableNode : public DeclarationNode {
 	public:
-		VariableNode(Token variable_token, Type type = VarType::I32, ptr<ExpressionNode> expression = nullptr)
-			: variable_token{ variable_token }, expression{ expression }, type{ type } {}
+		VariableNode(Token variable_token, Type type = VarType::I32, ptr<ExpressionNode> expression = nullptr, VarFlag flag = VarFlag::Local)
+			: variable_token{ variable_token }, expression{ expression }, type{ type }, flag{ flag } {}
 
 		NODE_TYPE(VARIABLE)
 	public:
 		Token variable_token;
 		ptr<ExpressionNode> expression;
 		Type type;
+		VarFlag flag;
 	};
 
 	// Expression Nodes

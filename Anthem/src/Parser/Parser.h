@@ -53,7 +53,7 @@ namespace Anthem {
 
 		ptr<DeclarationNode> parse_declaration();
 		ptr<DeclarationNode> parse_function_declaration();
-		ptr<DeclarationNode> parse_variable_declaration();
+		ptr<DeclarationNode> parse_variable_declaration(VarFlag flag = VarFlag::Local);
 		ptr<DeclarationNode> parse_external();
 
 		// Statement Parsing
