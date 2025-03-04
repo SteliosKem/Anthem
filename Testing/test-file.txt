@@ -1,4 +1,4 @@
-internal fn putchar(char);
+internals fn putchar(char);
 
 global var;
 

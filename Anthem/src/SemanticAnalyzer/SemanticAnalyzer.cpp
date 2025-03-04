@@ -80,7 +80,10 @@ namespace Anthem {
 		case NodeType::FUNCTION_DECLARATION: {
 			ptr<FunctionDeclarationNode> function = std::static_pointer_cast<FunctionDeclarationNode>(declaration_node);
 
-			m_global_map[function->name] = function->name;
+			if (m_global_map.find(function->name) != m_global_map.end())
+				report_error("Function '" + function->name + "' is already defined", Token{});
+			else
+				m_global_map[function->name] = function->name;
 
 			if(function->parameters.empty())
 				analyze_statement(function->body);

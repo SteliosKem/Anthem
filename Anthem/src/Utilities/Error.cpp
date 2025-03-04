@@ -43,7 +43,7 @@ namespace Anthem {
 				after_index++;
 			}
 
-			int start_pos = error.token_position.src_start_index - leading_index + 1;
+			int start_pos = error.token_position.src_start_index - leading_index;
 			int end_pos = error.token_position.src_end_index + after_index;
 
 			std::string error_line = (leading_index == maximum_line_padding_characters ? "..." : "") 
