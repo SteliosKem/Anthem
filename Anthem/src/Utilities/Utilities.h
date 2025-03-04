@@ -31,6 +31,7 @@ namespace Anthem {
 		Local,
 		Global,
 		Internal,
+		External
 	};
 
 	enum class BinaryOperation {

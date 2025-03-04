@@ -28,7 +28,7 @@ namespace Anthem {
 			m_symbol_table[function->name] = func_type;
 		}
 		else if (declaration->get_type() == NodeType::EXTERNAL_DECLARATION) {
-			auto function = std::static_pointer_cast<ExternalNode>(declaration);
+			auto function = std::static_pointer_cast<ExternalFunctionNode>(declaration);
 			FunctionType func_type;
 			func_type.is_external = true;
 			func_type.return_type = VarType::I32;

@@ -101,7 +101,7 @@ namespace Anthem {
 				break;
 			}
 			case NodeType::EXTERNAL_DECLARATION: {
-				ptr<ExternalNode> external_node = std::static_pointer_cast<ExternalNode>(node);
+				ptr<ExternalFunctionNode> external_node = std::static_pointer_cast<ExternalFunctionNode>(node);
 				std::cout << padding << "External Function " << external_node->name << " (";
 				for (auto& i : external_node->parameters) {
 					std::cout << i.name << ", ";
@@ -317,19 +317,28 @@ namespace Anthem {
 			advance();
 			return parse_function_declaration();
 		case EXTERNAL:
-			advance();
-			return parse_external();
+			if (peek().type == FUNCTION) {
+				advance();
+				advance();
+				return parse_external();
+			}
+			return parse_variable_declaration(VarFlag::External);
 		case INTERNAL:
-			return parse_variable_declaration();
+			if (peek().type == FUNCTION) {
+				advance();
+				advance();
+				return parse_function_declaration(VarFlag::Internal);
+			}
+			return parse_variable_declaration(VarFlag::Internal);
 		case GLOBAL:
-			return parse_variable_declaration();
+			return parse_variable_declaration(VarFlag::Global);
 		default:
 			report_error("Expected a declaration");
 		}
 		return nullptr;
 	}
 
-	ptr<DeclarationNode> Parser::parse_function_declaration() {
+	ptr<DeclarationNode> Parser::parse_function_declaration(VarFlag flag) {
 		// Save identifier
 		Token identifier = current_token();
 		if (!consume(IDENTIFIER, "Expected Function Identifier")) return nullptr;
@@ -355,7 +364,10 @@ namespace Anthem {
 		// Parse Function Body - Can be a single statement
 		ptr<StatementNode> body = parse_statement();
 
-		return std::make_shared<FunctionDeclarationNode>(identifier.value, body, parameter_list);
+		ptr<FunctionDeclarationNode> func = std::make_shared<FunctionDeclarationNode>(identifier.value, body, parameter_list);
+		func->flag = flag;
+
+		return func;
 	}
 
 	ptr<DeclarationNode> Parser::parse_external() {
@@ -383,7 +395,7 @@ namespace Anthem {
 
 		CONSUME_SEMICOLON();
 
-		return std::make_shared<ExternalNode>(identifier.value, parameter_list, VarType::I32);
+		return std::make_shared<ExternalFunctionNode>(identifier.value, parameter_list, VarType::I32);
 	}
 
 	ptr<DeclarationNode> Parser::parse_variable_declaration(VarFlag flag) {

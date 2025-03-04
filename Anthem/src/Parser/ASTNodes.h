@@ -101,11 +101,12 @@ namespace Anthem {
 		std::vector<Parameter> parameters;
 		ptr<StatementNode> body;
 		Type return_type;
+		VarFlag flag;
 	};
 
-	class ExternalNode : public DeclarationNode {
+	class ExternalFunctionNode : public DeclarationNode {
 	public:
-		ExternalNode(const Name& name, const std::vector<Parameter>& parameters, Type type = VarType::I32)
+		ExternalFunctionNode(const Name& name, const std::vector<Parameter>& parameters, Type type = VarType::I32)
 			: name{ name }, parameters{ parameters }, return_type{ type } {}
 
 		NODE_TYPE(EXTERNAL_DECLARATION)
