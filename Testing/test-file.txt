@@ -1,11 +1,9 @@
-internals fn putchar(char);
+internal fn putchar(char);
 
 global var;
 
-fn a() {}
-
 fn main() { // Main Function
-	let a = 7;
+	/*let a = 7;
 	let b = 60;
 
 	//if(b == 1) -> return other_func(2);
@@ -15,5 +13,8 @@ fn main() { // Main Function
 		i = i + 1;
 	}
 
-	a();
+	a();*/
+	var;
 }
+
+fn main() {}

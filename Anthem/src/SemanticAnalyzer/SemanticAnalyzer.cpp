@@ -63,27 +63,36 @@ namespace Anthem {
 			ptr<VariableNode> variable = std::static_pointer_cast<VariableNode>(declaration_node);
 			Name variable_name = variable->variable_token.value;
 
-			// Check if variable already exists
-			if (current_map().find(variable_name) != current_map().end())
+			// Check if variable already exists in locally or globally
+			if (current_map().find(variable_name) != current_map().end()
+				|| m_global_map.find(variable_name) != m_global_map.end())
 				report_error("Variable '" + variable_name + "' is already defined", variable->variable_token);
 
 			if (variable->expression)
 				analyze_expression(variable->expression);
 
-			// Add variable to the variable map
-			Name new_var_name = make_unique(variable_name);
-			current_map()[variable_name] = new_var_name;
-			variable->variable_token.value = new_var_name;
+			if (variable->flag == VarFlag::Local) {
+				// Add variable to the current local variable map
+				Name new_var_name = make_unique(variable_name);
+				current_map()[variable_name] = new_var_name;
+				variable->variable_token.value = new_var_name;
+			}
+			// All other VarFlags are handled the same, as globals, except for internal which allows renaming
+			else {
+				// Add variable to the global variable map
+				Name new_var_name;
+				if(variable->flag == VarFlag::Internal)
+					new_var_name = make_unique(variable_name);
+				m_global_map[variable_name] = new_var_name;
+				variable->variable_token.value = new_var_name;
+			}
 			break;
 		}
 							   
 		case NodeType::FUNCTION_DECLARATION: {
 			ptr<FunctionDeclarationNode> function = std::static_pointer_cast<FunctionDeclarationNode>(declaration_node);
 
-			if (m_global_map.find(function->name) != m_global_map.end())
-				report_error("Function '" + function->name + "' is already defined", Token{});
-			else
-				m_global_map[function->name] = function->name;
+			m_global_map[function->name] = function->name;
 
 			if(function->parameters.empty())
 				analyze_statement(function->body);
@@ -246,10 +255,13 @@ namespace Anthem {
 			Name name = name_access->variable_token.value;
 
 			// Check if the variable exists
-			if (current_map().find(name) == current_map().end())
-				report_error("Variable '" + name + "' is not defined in this scope", name_access->variable_token);
-			else
+			if (current_map().find(name) != current_map().end())
 				name_access->variable_token.value = current_map()[name];
+			else if (m_global_map.find(name) != m_global_map.end())
+				name_access->variable_token.value = m_global_map[name];
+			else
+				report_error("Variable '" + name + "' is not defined in this scope", name_access->variable_token);
+			
 			break;
 		}
 		case NodeType::FUNCTION_CALL: {
