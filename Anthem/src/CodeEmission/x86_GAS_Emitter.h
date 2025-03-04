@@ -1,3 +1,7 @@
+// x86_GAS_Emitter.h
+// Contains the x86 AT&T Assembly Emmiter for Linux Class defintion
+// Copyright (c) 2024-present, Stylianos Kementzetzidis
+
 #pragma once
 #include "CodeEmitter.h"
 

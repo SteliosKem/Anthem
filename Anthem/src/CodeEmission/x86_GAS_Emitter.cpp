@@ -1,3 +1,7 @@
+// x86_GAS_Emitter.h
+// Contains the x86 AT&T Assembly Emmiter for Linux Class method implementations
+// Copyright (c) 2024-present, Stylianos Kementzetzidis
+
 #include "x86_GAS_Emitter.h"
 
 namespace Anthem {

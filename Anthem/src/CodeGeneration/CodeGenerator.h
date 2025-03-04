@@ -1,3 +1,7 @@
+// CodeGenerator.h
+// Contains the CodeGenerator Class definition
+// Copyright (c) 2024-present, Stylianos Kementzetzidis
+
 #pragma once
 #include "Utilities/Error.h"
 #include "ASMProgramStruct.h"

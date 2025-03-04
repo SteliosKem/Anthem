@@ -1,3 +1,7 @@
+// CodeEmitter.h
+// Contains the CodeEmitter Class definition
+// Copyright (c) 2024-present, Stylianos Kementzetzidis
+
 #pragma once
 #include "CodeGeneration/CodeGenerator.h"
 
@@ -9,7 +13,8 @@ namespace Anthem {
 		QWORD
 	};
 
-	/* Base Class that defines general emitting behaviour.
+	/* 
+	*  Base Class that defines general emitting behaviour.
 	*  Derived classes implement the pure virtual functions, in order to have the ability
 	*  to implement assembly emission for more architectures / syntaxes
 	*/

@@ -1,3 +1,7 @@
+// CodeEmitter.h
+// Contains the CodeEmitter Class method implementations
+// Copyright (c) 2024-present, Stylianos Kementzetzidis
+
 #include "CodeEmitter.h"
 
 namespace Anthem {

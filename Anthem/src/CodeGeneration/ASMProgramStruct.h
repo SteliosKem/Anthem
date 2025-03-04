@@ -1,3 +1,7 @@
+// AIRConstructs.h
+// Contains Node definitions for ASM trees
+// Copyright (c) 2024-present, Stylianos Kementzetzidis
+
 #pragma once
 #include <string>
 #include <vector>

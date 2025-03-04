@@ -1,3 +1,7 @@
+// CodeGenerator.cpp
+// Contains the CodeGenerator Class method implementations
+// Copyright (c) 2024-present, Stylianos Kementzetzidis
+
 #include "CodeGenerator.h"
 
 namespace Anthem {
