@@ -1,4 +1,4 @@
-external putchar(char);
+global putchar(char);
 
 fn a() {}
 
