@@ -1,20 +1,10 @@
-internal fn putchar(char);
-
-global var;
+external fn putchar(char);
 
 fn main() { // Main Function
-	/*let a = 7;
-	let b = 60;
-
-	//if(b == 1) -> return other_func(2);
-	let i = 72;
-        while i < 100 -> {
-		putchar(b);
+	let i = 80;
+	while i < 100 -> {
+		putchar(i);
 		i = i + 1;
 	}
-
-	a();*/
-	var;
 }
 
-fn main() {}

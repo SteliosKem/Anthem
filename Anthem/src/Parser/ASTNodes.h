@@ -11,10 +11,6 @@ namespace Anthem {
 // Macro to simplify basic setup for all node classes
 #define NODE_TYPE(x) NodeType get_type() const override { return NodeType::x; }
 
-	// Using 'Name' type in case it gets changed from std::string
-	using Name = std::string;
-
-
 	enum class NodeType {
 		// Groups
 			DECLARATION,
@@ -92,7 +88,7 @@ namespace Anthem {
 
 	class FunctionDeclarationNode : public DeclarationNode {
 	public:
-		FunctionDeclarationNode(const Name& name, ptr<StatementNode> body, const std::vector<Parameter>& parameters, Type type = VarType::I32)
+		FunctionDeclarationNode(const Name& name, ptr<StatementNode> body, const std::vector<Parameter>& parameters, ReturnType type = ReturnType::I32)
 			: name{ name }, body{ body }, parameters{ parameters }, return_type{ type } {}
 
 		NODE_TYPE(FUNCTION_DECLARATION)
@@ -100,32 +96,32 @@ namespace Anthem {
 		Name name;
 		std::vector<Parameter> parameters;
 		ptr<StatementNode> body;
-		Type return_type;
+		ReturnType return_type;
 		VarFlag flag;
 	};
 
 	class ExternalFunctionNode : public DeclarationNode {
 	public:
-		ExternalFunctionNode(const Name& name, const std::vector<Parameter>& parameters, Type type = VarType::I32)
+		ExternalFunctionNode(const Name& name, const std::vector<Parameter>& parameters, ReturnType type = ReturnType::I32)
 			: name{ name }, parameters{ parameters }, return_type{ type } {}
 
 		NODE_TYPE(EXTERNAL_DECLARATION)
 	public:
 		Name name;
 		std::vector<Parameter> parameters;
-		Type return_type;
+		ReturnType return_type;
 	};
 
 	class VariableNode : public DeclarationNode {
 	public:
-		VariableNode(Token variable_token, Type type = VarType::I32, ptr<ExpressionNode> expression = nullptr, VarFlag flag = VarFlag::Local)
+		VariableNode(Token variable_token, ReturnType type = ReturnType::I32, ptr<ExpressionNode> expression = nullptr, VarFlag flag = VarFlag::Local)
 			: variable_token{ variable_token }, expression{ expression }, type{ type }, flag{ flag } {}
 
 		NODE_TYPE(VARIABLE)
 	public:
 		Token variable_token;
 		ptr<ExpressionNode> expression;
-		Type type;
+		ReturnType type;
 		VarFlag flag;
 	};
 

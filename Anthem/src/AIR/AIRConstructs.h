@@ -19,6 +19,7 @@ namespace Anthem {
 		DECLARATION,
 
 		FUNCTION,
+		FLAGGED_VAR,
 		EXTERNAL_DECL,
 
 		UNARY_OPERATION,
@@ -83,6 +84,19 @@ namespace Anthem {
 		Name name;
 		std::vector<Name> parameters;
 		AIRInstructionList instructions;
+	};
+
+	class AIRFlaggedVarNode : public AIRDeclarationNode {
+	public:
+		AIRFlaggedVarNode() = default;
+		AIRFlaggedVarNode(const Name& name, VarFlag flag, int initializer)
+			: name{ name }, flag{ flag }, initializer{ initializer } {}
+
+		AIR_NODE_TYPE(FLAGGED_VAR)
+	public:
+		Name name;
+		VarFlag flag;
+		int initializer;
 	};
 
 	// Operand Nodes

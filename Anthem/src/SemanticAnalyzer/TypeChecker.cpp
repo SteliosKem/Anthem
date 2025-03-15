@@ -8,6 +8,7 @@ namespace Anthem {
 	TypeChecker::TypeChecker(ErrorHandler* error_handler) : m_error_handler{ error_handler } {}
 
 	void TypeChecker::check(ptr<ProgramNode> program) {
+		m_symbol_table.clear();
 		for (auto& declaration : program->declarations)
 			track_function(declaration);
 		for (auto& declaration : program->declarations)
@@ -20,9 +21,9 @@ namespace Anthem {
 			FunctionType func_type;
 
 			// Only 32 bit integer types for now
-			func_type.return_type = VarType::I32;
+			func_type.return_type = ReturnType::I32;
 			for (auto& parameter : function->parameters)
-				func_type.parameters.push_back(VarType::I32);
+				func_type.parameters.push_back(ReturnType::I32);
 
 			// Add the function to the symbol table
 			m_symbol_table[function->name] = func_type;
@@ -31,9 +32,9 @@ namespace Anthem {
 			auto function = std::static_pointer_cast<ExternalFunctionNode>(declaration);
 			FunctionType func_type;
 			func_type.is_external = true;
-			func_type.return_type = VarType::I32;
+			func_type.return_type = ReturnType::I32;
 			for (auto& parameter : function->parameters)
-				func_type.parameters.push_back(VarType::I32);
+				func_type.parameters.push_back(ReturnType::I32);
 
 			// Add the external function to the symbol table
 			m_symbol_table[function->name] = func_type;
@@ -46,8 +47,20 @@ namespace Anthem {
 		case NodeType::VARIABLE: {
 			auto variable = std::static_pointer_cast<VariableNode>(declaration);
 
+			int initializer = 0;
+
+			if (variable->flag != VarFlag::Local && variable->expression) {
+				if(variable->flag == VarFlag::External)
+					m_error_handler->report_error(Error{ "External variable declarations cannot have an initializer" });
+				else {
+					if (variable->expression->get_type() != NodeType::INT_LITERAL)
+						m_error_handler->report_error(Error{ "Global and internal variable declarations cannot have a non-constant initializer" });
+				}
+				initializer = std::static_pointer_cast<IntegerLiteralNode>(variable->expression)->integer;
+			}
+
 			// Only 32 bit integer types for now
-			m_symbol_table[variable->variable_token.value] = VarType::I32;
+			m_symbol_table[variable->variable_token.value] = VariableType{ ReturnType::I32, variable->flag, initializer };
 			if (variable->expression)
 				check_expression(variable->expression);
 			break;

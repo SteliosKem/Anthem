@@ -10,7 +10,7 @@
 namespace Anthem {
 	class CodeGenerator {
 	public:
-		CodeGenerator(ErrorHandler* error_handler);
+		CodeGenerator(ErrorHandler* error_handler, bool compile_for_windows);
 
 		// Generate an ASM Program Tree from and AST
 		ptr<ASMProgramNode> generate(ptr<AIRProgramNode> program);
@@ -72,5 +72,6 @@ namespace Anthem {
 
 		ErrorHandler* m_error_handler;
 		std::vector<FunctionInfo> m_functions;
+		bool m_compile_for_windows;
 	};
 }

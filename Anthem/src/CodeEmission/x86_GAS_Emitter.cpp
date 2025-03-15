@@ -32,6 +32,8 @@ namespace Anthem {
 		}
 	}
 
+	x86_GAS_Emitter::x86_GAS_Emitter(bool compile_for_windows) : m_compile_for_windows{ compile_for_windows } {}
+
 	void x86_GAS_Emitter::emit_string(const std::string& str, bool idented) {
 		if (idented)
 			m_assembly_output += '\t';
@@ -357,7 +359,7 @@ namespace Anthem {
 	}
 
 	void x86_GAS_Emitter::emit_call(ptr<ASMCallNode> call) {
-		emit_string("call " + call->label + (call->is_external ? "@PLT" : ""));
+		emit_string("call " + call->label + (call->is_external && !m_compile_for_windows ? "@PLT" : ""));
 		emit_line();
 	}
 
@@ -367,7 +369,8 @@ namespace Anthem {
 	}
 
 	void x86_GAS_Emitter::emit_file_epilogue() {
-		emit_string(".section .note.GNU-stack,\"\",@progbits", false);
+		if(!m_compile_for_windows)
+			emit_string(".section .note.GNU-stack,\"\",@progbits", false);
 		emit_line();
 	}
 

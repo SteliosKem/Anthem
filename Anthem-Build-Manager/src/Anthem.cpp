@@ -10,17 +10,25 @@
 #include "SemanticAnalyzer/SemanticAnalyzer.h"
 #include "SemanticAnalyzer/TypeChecker.h"
 
-namespace Anthem {
-	
-}
+enum class Platform {
+	Windows,
+	Linux
+};
 
 int main(int argc, char* argv[]) {
 	if (argc < 2) {
 		Anthem::log(Anthem::LogType::ERROR, "Expected filename");
 		return -1;
 	}
-	std::string source = Anthem::read_file(argv[1]);
-	
+
+	std::vector<std::string> arguments(argv + 1, argv + argc);
+
+	bool compile_for_windows = false;
+
+	std::string source = Anthem::read_file(arguments[0]);
+	if (std::find(arguments.begin(), arguments.end(), "-w") != arguments.end())
+		compile_for_windows = true;
+
 	// Lexing Phase
 
 	Anthem::ErrorHandler error_handler{};
@@ -58,21 +66,25 @@ int main(int argc, char* argv[]) {
 
 
 					Anthem::AIRGenerator air_gen(&error_handler);
-					Anthem::ptr<Anthem::AIRProgramNode> air_node = air_gen.generate(program_node);
+					Anthem::ptr<Anthem::AIRProgramNode> air_node = air_gen.generate(program_node, type_checker.get_symbols());
 					std::cout << "\nAIR Output:\n";
 					Anthem::AIRGenerator::pretty_print(air_node);
 
-					Anthem::CodeGenerator code_gen(&error_handler);
+					Anthem::CodeGenerator code_gen(&error_handler, compile_for_windows);
 					Anthem::ptr<Anthem::ASMProgramNode> asm_node = code_gen.generate(air_node);
 
 					std::string output{ "" };
-					Anthem::x86_GAS_Emitter emitter{};
+					Anthem::x86_GAS_Emitter emitter(compile_for_windows);
 					emitter.emit(asm_node, output);
 					std::cout << "\nAssembly Output for file: " << argv[1] << "\n" << output << "\n";
 
 					std::filesystem::path path = argv[1];
 					path = path.replace_extension("s");
 					Anthem::write_file(path, output);
+
+					std::string execute_gcc = "gcc " + path.string() + " -o " + path.string().substr(0, path.string().size() - 2);
+					std::cout << execute_gcc << '\n';
+					system(execute_gcc.c_str());
 				}
 			}
 		}

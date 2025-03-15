@@ -175,8 +175,17 @@ namespace Anthem {
 		return std::make_shared<AIRVariableValueNode>(name);
 	}
 
-	ptr<AIRProgramNode> AIRGenerator::generate(ptr<ProgramNode> program) {
-		return generate_program(program);
+	ptr<AIRProgramNode> AIRGenerator::generate(ptr<ProgramNode> program, SymbolTable& symbol_table) {
+		m_extra_definitions.clear();
+		ptr<AIRProgramNode> program_node = generate_program(program);
+		for (auto& [name, type] : symbol_table) {
+			if (std::holds_alternative<VariableType>(type)) {
+				VariableType var_type = std::get<VariableType>(type);
+				if (var_type.flag != VarFlag::Local)
+					m_extra_definitions.push_back(std::make_shared<AIRFlaggedVarNode>(name, var_type.flag, var_type.initializer));
+			}
+		}
+		return program_node;
 	}
 
 	ptr<AIRProgramNode> AIRGenerator::generate_program(ptr<ProgramNode> program_node) {

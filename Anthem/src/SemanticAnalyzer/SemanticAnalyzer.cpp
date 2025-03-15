@@ -9,6 +9,7 @@ namespace Anthem {
 
 	void SemanticAnalyzer::analyze_resolve(ptr<ProgramNode> program_node) {
 		m_local_map_stack.push_back({});
+		m_global_map.clear();
 
 		// First pass to find all global declarations and handle duplicates
 		for (auto& decl : program_node->declarations) {

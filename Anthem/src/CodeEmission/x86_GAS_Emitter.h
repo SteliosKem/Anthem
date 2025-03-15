@@ -8,7 +8,7 @@
 namespace Anthem {
 	class x86_GAS_Emitter : public CodeEmitter {
 	public:
-		x86_GAS_Emitter() = default;
+		x86_GAS_Emitter(bool compile_for_windows = false);
 	protected:
 		virtual void emit_global_identifier(const std::string& identifier) override;
 		virtual void emit_label(const std::string& name) override;
@@ -38,6 +38,7 @@ namespace Anthem {
 		void emit_string(const std::string& str, bool idented = true);
 		void emit_line();
 	private:
+		bool m_compile_for_windows = false;
 		std::string m_assembly_output;
 	};
 }

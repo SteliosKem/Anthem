@@ -22,7 +22,8 @@ namespace Anthem {
 		}
 	}
 
-	CodeGenerator::CodeGenerator(ErrorHandler* error_handler) : m_error_handler{ error_handler } {}
+	CodeGenerator::CodeGenerator(ErrorHandler* error_handler, bool compile_for_windows)
+		: m_error_handler{ error_handler }, m_compile_for_windows{ compile_for_windows } {}
 
 	ptr<ASMProgramNode> CodeGenerator::generate(ptr<AIRProgramNode> program) {
 		ptr<ASMProgramNode> asm_program = generate_program(program);
@@ -52,10 +53,13 @@ namespace Anthem {
 	}
 
 	ptr<ASMFunctionNode> CodeGenerator::generate_function_declaration(ptr<AIRFunctionNode> function_node) {
-		const uint8_t registers_to_set = 6;
+		// System V Calling Convention sets 6 registers before allocating passed arguments to stack, Microsoft's requires 4
+		uint8_t registers_to_set = (m_compile_for_windows ? 4 : 6);
 		using R = Register;
 
-		Register argument_registers[registers_to_set] = { R::EDI, R::ESI, R::EDX, R::ECX, R::R8D, R::R9D };
+		std::vector<Register> argument_registers = (m_compile_for_windows)
+			? std::vector<Register>{ R::ECX, R::EDX, R::R8D, R::R9D }	// <- Microsoft ABI
+			: std::vector<Register>{ R::EDI, R::ESI, R::EDX, R::ECX, R::R8D, R::R9D };	// <- System V ABI
 
 		ptr<ASMFunctionNode> asm_function_node = std::make_shared<ASMFunctionNode>();
 		asm_function_node->name = function_node->name;
@@ -301,10 +305,13 @@ namespace Anthem {
 	}
 
 	void CodeGenerator::generate_call(ptr<AIRFunctionCallNode> call_node, ASMInstructionList& list_output) {
-		const uint8_t registers_to_set = 6;
+		// System V Calling Convention sets 6 registers before allocating passed arguments to stack, Microsoft's requires 4
+		uint8_t registers_to_set = (m_compile_for_windows ? 4 : 6);
 		using R = Register;
 
-		Register argument_registers[registers_to_set] = { R::EDI, R::ESI, R::EDX, R::ECX, R::R8D, R::R9D };
+		std::vector<Register> argument_registers = (m_compile_for_windows)
+			? std::vector<Register>{ R::ECX, R::EDX, R::R8D, R::R9D }	// <- Microsoft ABI
+			: std::vector<Register>{ R::EDI, R::ESI, R::EDX, R::ECX, R::R8D, R::R9D };	// <- System V ABI
 		uint32_t args_size = call_node->value_list.size();
 		uint32_t stack_argument_size = args_size - registers_to_set;
 		if (stack_argument_size < 0) stack_argument_size = 0;

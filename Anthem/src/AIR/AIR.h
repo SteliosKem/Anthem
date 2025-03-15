@@ -12,7 +12,8 @@ namespace Anthem {
 		AIRGenerator(ErrorHandler* error_handler);
 
 		// Generate an AIR Program Tree from parser AST
-		ptr<AIRProgramNode> generate(ptr<ProgramNode> program);
+		ptr<AIRProgramNode> generate(ptr<ProgramNode> program, SymbolTable& symbol_table);
+		std::vector<ptr<AIRFlaggedVarNode>>& get_extra_definitions() { return m_extra_definitions; }
 
 		static void pretty_print(ptr<AIRNode> program_node);
 	private:
@@ -63,5 +64,7 @@ namespace Anthem {
 		uint32_t m_global_label_counter{ 0 };
 		ErrorHandler* m_error_handler{ nullptr };
 		int m_temp_counter{ 0 };
+
+		std::vector<ptr<AIRFlaggedVarNode>> m_extra_definitions;
 	};
 }

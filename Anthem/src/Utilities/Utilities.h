@@ -3,35 +3,47 @@
 #include <string>
 #include <memory>
 #include <variant>
+#include <unordered_map>
 
 namespace Anthem {
 	template<typename T>
 	using ptr = std::shared_ptr<T>;
 
-	enum class VarType {
+	// Using 'Name' type in case it gets changed from std::string
+	using Name = std::string;
+
+	enum class VarFlag {
+		Local,
+		Global,
+		Internal,
+		External
+	};
+
+	enum class ReturnType {
 		I32
 	};
 
-	struct FunctionType {
-		VarType return_type = VarType::I32;
-		std::vector<VarType> parameters;
-		bool is_external = false;
+	struct VariableType {
+		ReturnType return_type = ReturnType::I32;
+		VarFlag flag = VarFlag::Local;
+		int initializer = 0;
 	};
 
-	using Type = std::variant<VarType, FunctionType>;
+	struct FunctionType {
+		ReturnType return_type = ReturnType::I32;
+		std::vector<ReturnType> parameters;
+		bool is_external = false;
+		VarFlag flag = VarFlag::Global;
+	};
+
+	using Type = std::variant<VariableType, FunctionType>;
+	using SymbolTable = std::unordered_map<Name, Type>;
 
 	enum class UnaryOperation {
 		NEGATE,
 		COMPLEMENT,
 		NOT,
 		NONE
-	};
-	
-	enum class VarFlag {
-		Local,
-		Global,
-		Internal,
-		External
 	};
 
 	enum class BinaryOperation {

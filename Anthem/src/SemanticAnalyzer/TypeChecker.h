@@ -9,14 +9,14 @@
 #include <Parser/ASTNodes.h>
 
 namespace Anthem {
-	using SymbolTable = std::unordered_map<Name, Type>;
-
 	class TypeChecker {
 	public:
 		TypeChecker(ErrorHandler* error_handler);
 
 		// Type Check an AST
 		void check(ptr<ProgramNode> program);
+
+		SymbolTable& get_symbols() { return m_symbol_table; }
 
 	private:
 		void check_declaration(ptr<DeclarationNode> declaration);
