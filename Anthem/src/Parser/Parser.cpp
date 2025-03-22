@@ -91,9 +91,9 @@ namespace Anthem {
 			}
 			case NodeType::FUNCTION_DECLARATION: {
 				ptr<FunctionDeclarationNode> function_node = std::static_pointer_cast<FunctionDeclarationNode>(node);
-				std::cout << padding << "Function " << function_node->name << " (";
+				std::cout << padding << "Function " << int(function_node->return_type) << " " << function_node->name << " (";
 				for (auto& i : function_node->parameters) {
-					std::cout << i.name << ", ";
+					std::cout << i.name << ", " << int(i.type) << " ";
 				}
 				std::cout << ") (\n";
 				pretty_print(function_node->body, padding + "\t");
@@ -156,7 +156,7 @@ namespace Anthem {
 			}
 			case NodeType::VARIABLE: {
 				ptr<VariableNode> variable = std::static_pointer_cast<VariableNode>(node);
-				std::cout << padding << "Variable Declaration " << variable->variable_token.value;
+				std::cout << padding << "Variable Declaration " << variable->variable_token.value << " " << int(variable->type);
 				if (variable->expression) {
 					pretty_print(variable->expression);
 					std::cout << "\n";
@@ -351,7 +351,17 @@ namespace Anthem {
 			Token current_tok = current_token();
 			consume(IDENTIFIER, "Expected Parameter Name");
 
-			parameter_list.push_back({ current_tok.value });
+			ReturnType type;
+
+			if (!match(COLON))
+				report_error("Expected ':'");
+			if (is_type_token(current_token()))
+				type = get_type(current_token());
+			else
+				report_error("Expected Type after ':'");
+			advance();
+
+			parameter_list.push_back({ current_tok.value, type });
 
 			if (is_current(COMMA))
 				advance();
@@ -361,10 +371,21 @@ namespace Anthem {
 
 		if (!consume(RIGHT_PARENTHESIS, "Expected ')'")) return nullptr;
 
+		ReturnType type{};
+
+		if (!match(COLON))
+			report_error("Expected ':'");
+		if (is_type_token(current_token()))
+			type = get_type(current_token());
+		else
+			report_error("Expected Type after ':'");
+		advance();
+
 		// Parse Function Body - Can be a single statement
 		ptr<StatementNode> body = parse_statement();
 
 		ptr<FunctionDeclarationNode> func = std::make_shared<FunctionDeclarationNode>(identifier.value, body, parameter_list);
+		func->return_type = type;
 		func->flag = flag;
 
 		return func;
@@ -383,7 +404,17 @@ namespace Anthem {
 			Token current_tok = current_token();
 			consume(IDENTIFIER, "Expected Parameter Name");
 
-			parameter_list.push_back({ current_tok.value });
+			ReturnType type;
+
+			if (!match(COLON))
+				report_error("Expected ':'");
+			if (is_type_token(current_token()))
+				type = get_type(current_token());
+			else
+				report_error("Expected Type after ':'");
+			advance();
+
+			parameter_list.push_back({ current_tok.value, type });
 
 			if (is_current(COMMA))
 				advance();
@@ -393,9 +424,19 @@ namespace Anthem {
 
 		if (!consume(RIGHT_PARENTHESIS, "Expected ')'")) return nullptr;
 
+		ReturnType type{};
+
+		if (!match(COLON))
+			report_error("Expected ':'");
+		if (is_type_token(current_token()))
+			type = get_type(current_token());
+		else
+			report_error("Expected Type after ':'");
+		advance();
+
 		CONSUME_SEMICOLON();
 
-		return std::make_shared<ExternalFunctionNode>(identifier.value, parameter_list, ReturnType::I32);
+		return std::make_shared<ExternalFunctionNode>(identifier.value, parameter_list, type);
 	}
 
 	ptr<DeclarationNode> Parser::parse_variable_declaration(VarFlag flag) {
@@ -403,16 +444,21 @@ namespace Anthem {
 		Token identifier_token = current_token();
 		consume(IDENTIFIER, "Expected identifier");
 		ptr<VariableNode> variable = nullptr;
-		/*
-		* Will be added when more types are implemented
-		consume(COLON, "Expected ':'");
-		*/
+		ReturnType type;
+		if (!match(COLON))
+			report_error("Expected ':'");
+		if (is_type_token(current_token()))
+			type = get_type(current_token());
+		else
+			report_error("Expected Type after ':'");
+
+		advance();
 
 		// If there is assignment parse the expression given
 		if (match(EQUAL))
-			variable = std::make_shared<VariableNode>(identifier_token, ReturnType::I32, parse_expression());
+			variable = std::make_shared<VariableNode>(identifier_token, type, parse_expression());
 		else
-			variable = std::make_shared<VariableNode>(identifier_token, ReturnType::I32);
+			variable = std::make_shared<VariableNode>(identifier_token, type);
 
 		variable->flag = flag;
 

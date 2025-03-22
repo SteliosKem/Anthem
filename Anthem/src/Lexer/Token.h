@@ -158,5 +158,39 @@ namespace Anthem {
 		return NO_TYPE;
 	}
 
+	// Check if a token is of type Type
+	inline bool is_type_token(const Token& token) {
+		switch (token.type)
+		{
+		case KEY_I8:
+		case KEY_I16:
+		case KEY_I32:
+		case KEY_I64:
+		case KEY_F32:
+		case KEY_F64:
+		case KEY_BOOL:
+			return true;
+		default:
+			return false;
+		}
+	}
+
+	inline ReturnType get_type(const Token& token) {
+		switch (token.type)
+		{
+		case KEY_I8:
+		case KEY_I16:
+		case KEY_I32:
+			return ReturnType::I32;
+		case KEY_I64:
+			return ReturnType::I64;
+		case KEY_F32:
+		case KEY_F64:
+		case KEY_BOOL:
+		default:
+			return ReturnType::I32;
+		}
+	}
+
 	using TokenList = std::vector<Token>;
 }

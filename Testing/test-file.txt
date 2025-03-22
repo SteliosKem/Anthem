@@ -1,10 +1,9 @@
-external fn putchar(char);
+external fn putchar(char: i32): i32;
+external fn getchar(): i32;
 
-fn main() { // Main Function
-	let i = 80;
-	while i < 100 -> {
-		putchar(i);
-		i = i + 1;
-	}
+fn main(): i64 {
+    let i: i32 = getchar();
+    i = i + 1;
+    putchar(i);
+    return 0;
 }
-

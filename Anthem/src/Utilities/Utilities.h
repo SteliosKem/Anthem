@@ -20,7 +20,11 @@ namespace Anthem {
 	};
 
 	enum class ReturnType {
-		I32
+		I32,
+		I64,
+		F32,
+		F64,
+		BOOL
 	};
 
 	struct VariableType {

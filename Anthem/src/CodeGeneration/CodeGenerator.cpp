@@ -104,7 +104,7 @@ namespace Anthem {
 			return;
 		case AIRNodeType::SET: {
 			auto set = std::static_pointer_cast<AIRSetInstructionNode>(instruction_node);
-			list_output.push_back(mov(resolve_value(set->value), resolve_value(set->variable)));
+			instr(mov(resolve_value(set->value), resolve_value(set->variable)));
 			return;
 		}
 		case AIRNodeType::CALL: {
@@ -121,14 +121,14 @@ namespace Anthem {
 		auto source = resolve_value(unary_node->source);
 
 		if (unary_node->operation != UnaryOperation::NOT) {
-			list_output.push_back(mov(source, destination));
-			list_output.push_back(std::make_shared<UnaryInstructionNode>(unary_node->operation, destination));
+			instr(mov(source, destination));
+			instr(std::make_shared<UnaryInstructionNode>(unary_node->operation, destination));
 			return;
 		}
 
-		list_output.push_back(cmp(integer(0), source));
-		list_output.push_back(mov(integer(0), destination));
-		list_output.push_back(set(BinaryOperation::EQUAL, destination));
+		instr(cmp(integer(0), source));
+		instr(mov(integer(0), destination));
+		instr(set(BinaryOperation::EQUAL, destination));
 	}
 
 	void CodeGenerator::handle_complex_binary(ptr<AIRBinaryInstructionNode> binary_node, ASMInstructionList& list_output) {
@@ -136,28 +136,28 @@ namespace Anthem {
 		auto source_a = resolve_value(binary_node->source_a);
 		auto source_b = resolve_value(binary_node->source_b);
 
-		list_output.push_back(cmp(source_b, source_a));
-		list_output.push_back(mov(integer(0), destination));
+		instr(cmp(source_b, source_a));
+		instr(mov(integer(0), destination));
 
 		switch (binary_node->operation)
 		{
 		case BinaryOperation::GREATER:
-			list_output.push_back(std::make_shared<SetConditionalNode>(BinaryOperation::GREATER, destination));
+			instr(std::make_shared<SetConditionalNode>(BinaryOperation::GREATER, destination));
 			break;
 		case BinaryOperation::LESS:
-			list_output.push_back(std::make_shared<SetConditionalNode>(BinaryOperation::LESS, destination));
+			instr(std::make_shared<SetConditionalNode>(BinaryOperation::LESS, destination));
 			break;
 		case BinaryOperation::GREATER_EQUAL:
-			list_output.push_back(std::make_shared<SetConditionalNode>(BinaryOperation::GREATER_EQUAL, destination));
+			instr(std::make_shared<SetConditionalNode>(BinaryOperation::GREATER_EQUAL, destination));
 			break;
 		case BinaryOperation::LESS_EQUAL:
-			list_output.push_back(std::make_shared<SetConditionalNode>(BinaryOperation::LESS_EQUAL, destination));
+			instr(std::make_shared<SetConditionalNode>(BinaryOperation::LESS_EQUAL, destination));
 			break;
 		case BinaryOperation::EQUAL:
-			list_output.push_back(std::make_shared<SetConditionalNode>(BinaryOperation::EQUAL, destination));
+			instr(std::make_shared<SetConditionalNode>(BinaryOperation::EQUAL, destination));
 			break;
 		case BinaryOperation::NOT_EQUAL:
-			list_output.push_back(std::make_shared<SetConditionalNode>(BinaryOperation::NOT_EQUAL, destination));
+			instr(std::make_shared<SetConditionalNode>(BinaryOperation::NOT_EQUAL, destination));
 			break;
 		default:
 			break;
@@ -176,28 +176,28 @@ namespace Anthem {
 		auto source_b = resolve_value(binary_node->source_b);
 
 		if (binary_node->operation == BinaryOperation::DIVISION) {
-			list_output.push_back(mov(source_a, REGISTER(EAX)));
-			list_output.push_back(sign_extend());
-			list_output.push_back(div(source_b));
-			list_output.push_back(mov(REGISTER(EAX), destination));
+			instr(mov(source_a, REGISTER(EAX)));
+			instr(sign_extend());
+			instr(div(source_b));
+			instr(mov(REGISTER(EAX), destination));
 			return;
 		}
 		if (binary_node->operation == BinaryOperation::REMAINDER) {
-			list_output.push_back(mov(source_a, REGISTER(EAX)));
-			list_output.push_back(sign_extend());
-			list_output.push_back(div(source_b));
-			list_output.push_back(mov(REGISTER(EDX), destination));
+			instr(mov(source_a, REGISTER(EAX)));
+			instr(sign_extend());
+			instr(div(source_b));
+			instr(mov(REGISTER(EDX), destination));
 			return;
 		}
-		list_output.push_back(mov(source_a, destination));
-		list_output.push_back(std::make_shared<BinaryInstructionNode>(binary_node->operation, source_b, destination));
+		instr(mov(source_a, destination));
+		instr(std::make_shared<BinaryInstructionNode>(binary_node->operation, source_b, destination));
 	}
 
 	void CodeGenerator::generate_return(ptr<AIRReturnInstructionNode> return_node, ASMInstructionList& list_output) {
 		// Move the result of the return expression to EAX register
-		list_output.push_back(mov(resolve_value(return_node->value), REGISTER(EAX)));
+		instr(mov(resolve_value(return_node->value), REGISTER(EAX)));
 		// Return
-		list_output.push_back(ret());
+		instr(ret());
 	}
 
 	ptr<ASMOperandNode> CodeGenerator::resolve_value(ptr<AIRValueNode> value) {
@@ -287,21 +287,21 @@ namespace Anthem {
 	}
 
 	void CodeGenerator::generate_jump(ptr<AIRJumpInstructionNode> jump_node, ASMInstructionList& list_output) {
-		list_output.push_back(jmp(jump_node->label));
+		instr(jmp(jump_node->label));
 	}
 
 	void CodeGenerator::generate_jump_if_zero(ptr<AIRJumpIfZeroInstructionNode> jump_node, ASMInstructionList& list_output) {
-		list_output.push_back(cmp(integer(0), resolve_value(jump_node->condition)));
-		list_output.push_back(jmpc(BinaryOperation::EQUAL, jump_node->label));
+		instr(cmp(integer(0), resolve_value(jump_node->condition)));
+		instr(jmpc(BinaryOperation::EQUAL, jump_node->label));
 	}
 
 	void CodeGenerator::generate_jump_if_not_zero(ptr<AIRJumpIfNotZeroInstructionNode> jump_node, ASMInstructionList& list_output) {
-		list_output.push_back(cmp(integer(0), resolve_value(jump_node->condition)));
-		list_output.push_back(jmpc(BinaryOperation::NOT_EQUAL, jump_node->label));
+		instr(cmp(integer(0), resolve_value(jump_node->condition)));
+		instr(jmpc(BinaryOperation::NOT_EQUAL, jump_node->label));
 	}
 
 	void CodeGenerator::generate_label(ptr<AIRLabelNode> label_node, ASMInstructionList& list_output) {
-		list_output.push_back(std::make_shared<ASMLabelNode>(label_node->label));
+		instr(std::make_shared<ASMLabelNode>(label_node->label));
 	}
 
 	void CodeGenerator::generate_call(ptr<AIRFunctionCallNode> call_node, ASMInstructionList& list_output) {
@@ -318,7 +318,7 @@ namespace Anthem {
 
 		// Padding to adjust stack alignment for calling convention
 		int8_t stack_padding = (args_size % 2 == 0 ? 0 : 8);
-		if (!stack_padding) list_output.push_back(stack_alloc(stack_padding));
+		if (!stack_padding) instr(stack_alloc(stack_padding));
 
 		uint32_t register_index = 0;
 
@@ -326,28 +326,28 @@ namespace Anthem {
 		for (uint8_t i = 0; i < args_size && i < registers_to_set; i++) {
 			R reg = argument_registers[i];
 			auto assembly_arg = resolve_value(call_node->value_list[i]);
-			list_output.push_back(mov(assembly_arg, std::make_shared<RegisterOperandNode>(reg)));
+			instr(mov(assembly_arg, std::make_shared<RegisterOperandNode>(reg)));
 		}
 
 		// Push any remaining Arguments to the stack
 		for (uint8_t i = registers_to_set; i < args_size; i++) {
 			auto assembly_arg = resolve_value(call_node->value_list[i]);
 			if(assembly_arg->get_type() == ASMNodeType::REGISTER || assembly_arg->get_type() == ASMNodeType::INTEGER)
-				list_output.push_back(push(assembly_arg));
+				instr(push(assembly_arg));
 			else {
-				list_output.push_back(mov(assembly_arg, REGISTER(EAX)));
-				list_output.push_back(push(REGISTER(EAX)));
+				instr(mov(assembly_arg, REGISTER(EAX)));
+				instr(push(REGISTER(EAX)));
 			}
 		}
 
-		list_output.push_back(call(call_node->function, call_node->is_external));
+		instr(call(call_node->function, call_node->is_external));
 
 		// Adjust SP (Stack Pointer)
 		uint32_t bytes_to_remove = 8 * stack_argument_size + stack_padding;
-		if (bytes_to_remove) list_output.push_back(stack_dealloc(bytes_to_remove));
+		if (bytes_to_remove) instr(stack_dealloc(bytes_to_remove));
 
 		auto assembly_dest = resolve_value(call_node->destination);
-		list_output.push_back(mov(REGISTER(EAX), assembly_dest));
+		instr(mov(REGISTER(EAX), assembly_dest));
 	}
 
 	void CodeGenerator::replace_pseudo_registers() {

@@ -81,6 +81,7 @@ namespace Anthem {
 
 	struct Parameter {
 		Name name{ "" };
+		ReturnType type;
 		ptr<ExpressionNode> default_value{ nullptr };
 	};
 
