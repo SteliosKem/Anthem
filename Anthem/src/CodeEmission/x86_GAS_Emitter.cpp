@@ -49,8 +49,8 @@ namespace Anthem {
 		emit_line();
 	}
 
-	void x86_GAS_Emitter::emit_global_identifier(const std::string& identifier) {
-		emit_string(".globl " + identifier, false);
+	void x86_GAS_Emitter::emit_identifier(const std::string& identifier, bool global) {
+		emit_string((global ? ".globl " : "") + identifier, false);
 		emit_line();
 	}
 
@@ -267,6 +267,10 @@ namespace Anthem {
 		emit_string(std::format("{0}(%rbp)", offset), false);
 	}
 
+	void x86_GAS_Emitter::emit_data_access(const std::string& name) {
+		emit_string(name + "(%rip)", false);
+	}
+
 	void x86_GAS_Emitter::emit_return() {
 		emit_string("movq %rbp, %rsp");
 		emit_line();
@@ -371,6 +375,11 @@ namespace Anthem {
 	void x86_GAS_Emitter::emit_file_epilogue() {
 		if(!m_compile_for_windows)
 			emit_string(".section .note.GNU-stack,\"\",@progbits", false);
+		emit_line();
+	}
+
+	void x86_GAS_Emitter::emit_directive(const std::string& dir) {
+		emit_string("." + dir);
 		emit_line();
 	}
 

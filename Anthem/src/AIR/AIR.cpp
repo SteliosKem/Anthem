@@ -168,16 +168,27 @@ namespace Anthem {
 			std::cout << "]\n";
 			break;
 		}
+		case AIRNodeType::FLAGGED_VAR: {
+			ptr<AIRFlaggedVarNode> flagged_node = std::static_pointer_cast<AIRFlaggedVarNode>(node);
+			std::cout << "flagged " << flagged_node->name << '\n';
+			break;
+		}
 		}
 	}
 
 	ptr<AIRVariableValueNode> AIRGenerator::make_variable(Name name) {
-		return std::make_shared<AIRVariableValueNode>(name);
+		bool flagged = false;
+		for (auto& var : m_extra_definitions) {
+			if (var->name == name) {
+				flagged = true;
+				break;
+			}
+		}
+		return std::make_shared<AIRVariableValueNode>(name, flagged);
 	}
 
 	ptr<AIRProgramNode> AIRGenerator::generate(ptr<ProgramNode> program, SymbolTable& symbol_table) {
 		m_extra_definitions.clear();
-		ptr<AIRProgramNode> program_node = generate_program(program);
 		for (auto& [name, type] : symbol_table) {
 			if (std::holds_alternative<VariableType>(type)) {
 				VariableType var_type = std::get<VariableType>(type);
@@ -185,6 +196,7 @@ namespace Anthem {
 					m_extra_definitions.push_back(std::make_shared<AIRFlaggedVarNode>(name, var_type.flag, var_type.initializer));
 			}
 		}
+		ptr<AIRProgramNode> program_node = generate_program(program);
 		return program_node;
 	}
 
@@ -232,6 +244,7 @@ namespace Anthem {
 		generate_statement(function_node->body, AIR_function_node->instructions);
 		// Add return 0 instruction in case function doesn't have a return statement
 		AIR_function_node->instructions.push_back(std::make_shared<AIRReturnInstructionNode>(std::make_shared<AIRIntegerValueNode>(0)));
+		AIR_function_node->flag = function_node->flag;
 		return AIR_function_node;
 	}
 

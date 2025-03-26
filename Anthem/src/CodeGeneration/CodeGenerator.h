@@ -13,16 +13,17 @@ namespace Anthem {
 		CodeGenerator(ErrorHandler* error_handler, bool compile_for_windows);
 
 		// Generate an ASM Program Tree from and AST
-		ptr<ASMProgramNode> generate(ptr<AIRProgramNode> program);
+		ptr<ASMProgramNode> generate(ptr<AIRProgramNode> program, std::vector<ptr<AIRFlaggedVarNode>>& flagged_vars);
 	private:
 		// Create ASM Program from AST Program Node
-		ptr<ASMProgramNode> generate_program(ptr<AIRProgramNode> program_node);
+		ptr<ASMProgramNode> generate_program(ptr<AIRProgramNode> program_node, std::vector<ptr<AIRFlaggedVarNode>>& flagged_vars);
 		// Create an ASM Declaration (Function or Global Variable) Node from AST Declaration Node
 		ptr<ASMDeclarationNode> generate_declaration(ptr<AIRDeclarationNode> declaration_node);
 
 		// -- Declaration Generation --
 		
 		ptr<ASMFunctionNode> generate_function_declaration(ptr<AIRFunctionNode> function_node);
+		ptr<ASMFlaggedVar> generate_flagged_var(ptr<AIRFlaggedVarNode> function_node);
 
 		// -- ASM Instruction Generation --
 
@@ -68,6 +69,7 @@ namespace Anthem {
 		struct FunctionInfo {
 			ASMInstructionList* instructions{ nullptr };
 			std::unordered_map<Name, ptr<PseudoOperandNode>> pseudo_registers{};
+			std::unordered_map<Name, ptr<PseudoOperandNode>> flagged_vars{};
 		};
 
 		ErrorHandler* m_error_handler;

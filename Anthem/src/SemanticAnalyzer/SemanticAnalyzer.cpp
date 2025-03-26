@@ -81,7 +81,7 @@ namespace Anthem {
 			// All other VarFlags are handled the same, as globals, except for internal which allows renaming
 			else {
 				// Add variable to the global variable map
-				Name new_var_name;
+				Name new_var_name = variable->variable_token.value;
 				if(variable->flag == VarFlag::Internal)
 					new_var_name = make_unique(variable_name);
 				m_global_map[variable_name] = new_var_name;

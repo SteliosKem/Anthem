@@ -68,10 +68,13 @@ int main(int argc, char* argv[]) {
 					Anthem::AIRGenerator air_gen(&error_handler);
 					Anthem::ptr<Anthem::AIRProgramNode> air_node = air_gen.generate(program_node, type_checker.get_symbols());
 					std::cout << "\nAIR Output:\n";
+					for (auto& var : air_gen.get_extra_definitions()) {
+						Anthem::AIRGenerator::pretty_print(var);
+					}
 					Anthem::AIRGenerator::pretty_print(air_node);
 
 					Anthem::CodeGenerator code_gen(&error_handler, compile_for_windows);
-					Anthem::ptr<Anthem::ASMProgramNode> asm_node = code_gen.generate(air_node);
+					Anthem::ptr<Anthem::ASMProgramNode> asm_node = code_gen.generate(air_node, air_gen.get_extra_definitions());
 
 					std::string output{ "" };
 					Anthem::x86_GAS_Emitter emitter(compile_for_windows);

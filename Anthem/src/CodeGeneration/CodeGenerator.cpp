@@ -25,15 +25,18 @@ namespace Anthem {
 	CodeGenerator::CodeGenerator(ErrorHandler* error_handler, bool compile_for_windows)
 		: m_error_handler{ error_handler }, m_compile_for_windows{ compile_for_windows } {}
 
-	ptr<ASMProgramNode> CodeGenerator::generate(ptr<AIRProgramNode> program) {
-		ptr<ASMProgramNode> asm_program = generate_program(program);
+	ptr<ASMProgramNode> CodeGenerator::generate(ptr<AIRProgramNode> program, std::vector<ptr<AIRFlaggedVarNode>>& flagged_vars) {
+		ptr<ASMProgramNode> asm_program = generate_program(program, flagged_vars);
 		replace_pseudo_registers();
 		validate_instructions(asm_program);
 		return asm_program;
 	}
 
-	ptr<ASMProgramNode> CodeGenerator::generate_program(ptr<AIRProgramNode> program_node) {
+	ptr<ASMProgramNode> CodeGenerator::generate_program(ptr<AIRProgramNode> program_node, std::vector<ptr<AIRFlaggedVarNode>>& flagged_vars) {
 		ptr<ASMProgramNode> asm_program_node = std::make_shared<ASMProgramNode>();
+
+		for (auto& var : flagged_vars)
+			asm_program_node->declarations.push_back(generate_flagged_var(var));
 
 		// Generate ASM Declarations from every one of the AST Program Node
 		for (auto& declaration : program_node->declarations)
@@ -47,6 +50,8 @@ namespace Anthem {
 		switch (declaration_node->get_type()) {
 		case AIRNodeType::FUNCTION:
 			return generate_function_declaration(std::static_pointer_cast<AIRFunctionNode>(declaration_node));
+		case AIRNodeType::FLAGGED_VAR:
+			return generate_flagged_var(std::static_pointer_cast<AIRFlaggedVarNode>(declaration_node));
 		default:
 			return nullptr;
 		}
@@ -63,6 +68,7 @@ namespace Anthem {
 
 		ptr<ASMFunctionNode> asm_function_node = std::make_shared<ASMFunctionNode>();
 		asm_function_node->name = function_node->name;
+		asm_function_node->flag = function_node->flag;
 		// Push new vector for local variables
 		m_functions.push_back({ &asm_function_node->instructions });
 		for (uint32_t i = 0; i < function_node->parameters.size(); i++) {
@@ -77,6 +83,10 @@ namespace Anthem {
 		for (auto& instruction : function_node->instructions)
 			generate_instruction(instruction, asm_function_node->instructions);
 		return asm_function_node;
+	}
+
+	ptr<ASMFlaggedVar> CodeGenerator::generate_flagged_var(ptr<AIRFlaggedVarNode> var_node) {
+		return std::make_shared<ASMFlaggedVar>(var_node->name, var_node->flag, var_node->initializer);
 	}
 
 	void CodeGenerator::generate_instruction(ptr<AIRInstructionNode> instruction_node, ASMInstructionList& list_output) {
@@ -214,6 +224,13 @@ namespace Anthem {
 
 	ptr<PseudoOperandNode> CodeGenerator::make_pseudo_register(ptr<AIRVariableValueNode> variable) {
 		ptr<PseudoOperandNode> pseudo = std::make_shared<PseudoOperandNode>(variable->variable);
+		if (variable->flagged) {
+			pseudo->flagged = true;
+			auto& flagged_list = m_functions[m_functions.size() - 1].flagged_vars;
+			if (flagged_list.find(variable->variable) != flagged_list.end())
+				return flagged_list[variable->variable];
+			flagged_list[variable->variable] = pseudo;
+		}
 		auto& pseudo_list = m_functions[m_functions.size() - 1].pseudo_registers;
 		if (pseudo_list.find(variable->variable) != pseudo_list.end())
 			return pseudo_list[variable->variable];

@@ -83,6 +83,7 @@ namespace Anthem {
 	public:
 		Name name;
 		std::vector<Name> parameters;
+		VarFlag flag;
 		AIRInstructionList instructions;
 	};
 
@@ -112,11 +113,12 @@ namespace Anthem {
 
 	class AIRVariableValueNode : public AIRValueNode {
 	public:
-		AIRVariableValueNode(const Name& variable) : variable{ variable } {}
+		AIRVariableValueNode(const Name& variable, bool flagged = false) : variable{ variable }, flagged{ flagged } {}
 
 		AIR_NODE_TYPE(VARIABLE)
 	public:
 		Name variable;
+		bool flagged;
 	};
 
 	// Instruction Nodes

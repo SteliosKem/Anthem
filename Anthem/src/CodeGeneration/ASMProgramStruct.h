@@ -34,6 +34,7 @@ namespace Anthem {
 		LABEL,
 
 		FUNCTION,
+		FLAGGED_VAR,
 
 		// -- Operands --
 
@@ -101,13 +102,27 @@ namespace Anthem {
 	class ASMFunctionNode : public ASMDeclarationNode {
 	public:
 		ASMFunctionNode() = default;
-		ASMFunctionNode(const Name& name, const ASMInstructionList& instructions)
+		ASMFunctionNode(const Name& name, VarFlag flag, const ASMInstructionList& instructions)
 			: name{ name }, instructions{ instructions } {}
 
 		ASM_NODE_TYPE(FUNCTION)
 	public:
 		Name name;
+		VarFlag flag;
 		ASMInstructionList instructions;
+	};
+
+	class ASMFlaggedVar : public ASMDeclarationNode {
+	public:
+		ASMFlaggedVar() = default;
+		ASMFlaggedVar(const Name& name, VarFlag flag, int initializer)
+			: name{ name }, flag{ flag }, initializer{ initializer } {}
+
+		ASM_NODE_TYPE(FLAGGED_VAR)
+	public:
+		Name name;
+		VarFlag flag;
+		int initializer;
 	};
 
 	// -- Operand Nodes --
@@ -159,6 +174,7 @@ namespace Anthem {
 	public:
 		Name name;
 		int stack_offset{ 0 };
+		bool flagged = false;
 	};
 
 	// -- Instruction Nodes --

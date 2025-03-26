@@ -10,7 +10,7 @@ namespace Anthem {
 	public:
 		x86_GAS_Emitter(bool compile_for_windows = false);
 	protected:
-		virtual void emit_global_identifier(const std::string& identifier) override;
+		virtual void emit_identifier(const std::string& identifier, bool global) override;
 		virtual void emit_label(const std::string& name) override;
 		virtual void emit_function_prologue() override;
 		virtual void emit_function_epilogue() override;
@@ -21,6 +21,7 @@ namespace Anthem {
 		virtual void emit_file_epilogue() override;
 		virtual void emit_unary(ptr<UnaryInstructionNode> unary_operation) override;
 		virtual void emit_stack_access(int offset) override;
+		virtual void emit_data_access(const std::string& name) override;
 		virtual void emit_allocate_stack(ptr<AllocateStackNode> allocate_stack) override;
 		virtual void emit_binary(ptr<BinaryInstructionNode> binary_operation) override;
 		virtual void emit_idiv(ptr<DivideInstructionNode> divide) override;
@@ -32,6 +33,7 @@ namespace Anthem {
 		virtual void emit_deallocate_stack(ptr<ASMDeallocateStackNode> stack_operand) override;
 		virtual void emit_push_stack(ptr<ASMPushStackNode> operand) override;
 		virtual void emit_call(ptr<ASMCallNode> call) override;
+		virtual void emit_directive(const std::string& dir) override;
 
 		virtual const std::string& assembly_out() override;
 

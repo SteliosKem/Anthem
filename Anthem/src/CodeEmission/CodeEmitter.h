@@ -25,7 +25,7 @@ namespace Anthem {
 		virtual void emit(ptr<ASMProgramNode> program_node, std::string& assembly_out);
 	protected:
 		virtual void emit_program(ptr<ASMProgramNode> program);
-		virtual void emit_global_identifier(const std::string& identifier) = 0;
+		virtual void emit_identifier(const std::string& identifier, bool global) = 0;
 		virtual void emit_function(ptr<ASMFunctionNode> function);
 		virtual void emit_declaration(ptr<ASMDeclarationNode> declaration);
 		virtual void emit_label(const std::string& name) = 0;
@@ -47,10 +47,12 @@ namespace Anthem {
 		virtual void emit_idiv(ptr<DivideInstructionNode> divide) = 0;
 		virtual void emit_cdq() = 0;
 		virtual void emit_stack_access(int offset) = 0;
+		virtual void emit_data_access(const std::string& name) = 0;
 		virtual void emit_allocate_stack(ptr<AllocateStackNode> stack_operand) = 0;
 		virtual void emit_deallocate_stack(ptr<ASMDeallocateStackNode> stack_operand) = 0;
 		virtual void emit_push_stack(ptr<ASMPushStackNode> operand) = 0;
 		virtual void emit_call(ptr<ASMCallNode> call) = 0;
+		virtual void emit_directive(const std::string& dir) = 0;
 		virtual const std::string& assembly_out() = 0;
 	};
 }

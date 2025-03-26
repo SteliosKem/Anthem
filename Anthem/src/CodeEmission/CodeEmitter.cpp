@@ -18,7 +18,8 @@ namespace Anthem {
 	}
 
 	void CodeEmitter::emit_function(ptr<ASMFunctionNode> function) {
-		emit_global_identifier(function->name);
+		emit_directive("text");
+		emit_identifier(function->name, function->flag == VarFlag::Global);
 		emit_label(function->name);
 		emit_function_prologue();
 		for(auto& instruction : function->instructions)
@@ -32,6 +33,29 @@ namespace Anthem {
 		case ASMNodeType::FUNCTION:
 			emit_function(std::static_pointer_cast<ASMFunctionNode>(declaration));
 			break;
+		case ASMNodeType::FLAGGED_VAR: {
+			ptr<ASMFlaggedVar> var = std::static_pointer_cast<ASMFlaggedVar>(declaration);
+			switch (var->flag)
+			{
+			case VarFlag::Global:
+				emit_directive("globl " + var->name);
+			default:
+				break;
+			}
+			if (var->initializer) {
+				emit_directive("data");
+				emit_directive("align 4");
+				emit_label(var->name);
+				emit_directive("long " + std::to_string(var->initializer));
+			}
+			else {
+				emit_directive("bss");
+				emit_directive("align 4");
+				emit_label(var->name);
+				emit_directive("zero 4");
+			}
+			break;
+		}
 		default:
 			break;
 		}
@@ -49,9 +73,14 @@ namespace Anthem {
 		case ASMNodeType::STACK_OPERAND:
 			emit_stack_access(std::static_pointer_cast<StackOperandNode>(operand)->position);
 			break;
-		case ASMNodeType::PSEUDO_OPERAND:
-			emit_stack_access(std::static_pointer_cast<PseudoOperandNode>(operand)->stack_offset);
+		case ASMNodeType::PSEUDO_OPERAND: {
+			ptr<PseudoOperandNode> node = std::static_pointer_cast<PseudoOperandNode>(operand);
+			if (!node->flagged)
+				emit_stack_access(node->stack_offset);
+			else
+				emit_data_access(node->name);
 			break;
+		}
 		default:
 			break;
 		}
